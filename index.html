@@ -1,96 +1,226 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Trading Dashboard</title>
+<title>Smart Crypto Trading Platform</title>
 
 <style>
+
 body{
-background:#0d1117;
-color:white;
+margin:0;
 font-family:Arial;
-text-align:center;
+background:#0b0f1a;
+color:white;
 }
 
-.header{
-background:#161b22;
-padding:15px;
-font-size:24px;
-font-weight:bold;
+/* start screen */
+
+.start{
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+height:100vh;
 }
 
-.signal{
+.coin{
+padding:14px 24px;
+margin:8px;
+font-size:18px;
+background:#111827;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.coin:hover{
 background:#00ff88;
 color:black;
-padding:10px;
-font-size:18px;
+}
+
+/* header */
+
+.header{
+background:#111827;
+padding:15px;
+display:flex;
+justify-content:space-between;
+}
+
+.logo{
+color:#00ff88;
 font-weight:bold;
-margin:10px;
 }
 
-.sell{
-background:#ff4444;
+/* layout */
+
+.container{
+display:flex;
+height:92vh;
 }
 
-.liquidity{
-background:#161b22;
-border:2px solid red;
-padding:10px;
+.sidebar{
+width:260px;
+background:#111827;
+padding:12px;
+}
+
+.panel{
+background:#1f2937;
 margin-top:10px;
+padding:10px;
+border-radius:6px;
 }
 
-.zone{
-color:orange;
-font-size:18px;
+.chart-area{
+flex:1;
+padding:10px;
 }
+
+/* buttons */
+
+button{
+background:#1f2937;
+color:white;
+border:none;
+padding:6px 10px;
+margin:3px;
+cursor:pointer;
+}
+
+button:hover{
+background:#00ff88;
+color:black;
+}
+
+.buy{color:#00ff88;}
+.sell{color:#ff4444;}
+.zone{color:orange;}
 
 </style>
 </head>
 
 <body>
 
+<!-- start screen -->
+
+<div id="start" class="start">
+
+<h1>Select Coin</h1>
+
+<button class="coin" onclick="start('BTCUSDT')">Bitcoin</button>
+<button class="coin" onclick="start('ETHUSDT')">Ethereum</button>
+<button class="coin" onclick="start('SOLUSDT')">Solana</button>
+<button class="coin" onclick="start('BNBUSDT')">BNB</button>
+<button class="coin" onclick="start('XRPUSDT')">XRP</button>
+<button class="coin" onclick="start('DOGEUSDT')">Dogecoin</button>
+<button class="coin" onclick="start('ADAUSDT')">Cardano</button>
+<button class="coin" onclick="start('AVAXUSDT')">Avalanche</button>
+<button class="coin" onclick="start('MATICUSDT')">Polygon</button>
+
+</div>
+
+<!-- dashboard -->
+
+<div id="dashboard" style="display:none;">
+
 <div class="header">
-BTC Trading Dashboard
+<div class="logo">Smart Trading Terminal</div>
+<div id="coinname"></div>
 </div>
 
-<div class="signal">
-TREND SIGNAL : STRONG BUY 🚀
+<div class="container">
+
+<div class="sidebar">
+
+<div class="panel">
+Trend Signal<br>
+<span class="buy">STRONG BUY</span>
 </div>
 
-<!-- TradingView Chart -->
-<div class="tradingview-widget-container">
-<div id="tradingview_chart"></div>
+<div class="panel">
+Whale Trades<br>
+<span class="buy">🐋 Buy: Large Volume</span><br>
+<span class="sell">🐋 Sell: Large Volume</span>
+</div>
+
+<div class="panel">
+Liquidity Zone<br>
+<span class="zone">$63k - $63.4k</span>
+</div>
+
+<div class="panel">
+Demand Zone<br>
+$62k - $62.8k
+</div>
+
+<div class="panel">
+Supply Zone<br>
+$64k - $64.7k
+</div>
+
+</div>
+
+<div class="chart-area">
+
+Timeframe
+<button onclick="loadChart('5')">5m</button>
+<button onclick="loadChart('15')">15m</button>
+<button onclick="loadChart('60')">1H</button>
+<button onclick="loadChart('240')">4H</button>
+
+<div id="chart"></div>
+
+</div>
+
+</div>
+
+</div>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
+
+let coin="BTCUSDT";
+
+function start(c){
+
+coin=c;
+
+document.getElementById("start").style.display="none";
+document.getElementById("dashboard").style.display="block";
+
+document.getElementById("coinname").innerText=c;
+
+loadChart("15");
+
+}
+
+function loadChart(interval){
+
+document.getElementById("chart").innerHTML="";
+
 new TradingView.widget({
-width: "100%",
-height: 500,
-symbol: "BINANCE:BTCUSDT",
-interval: "15",
-timezone: "Etc/UTC",
-theme: "dark",
-style: "1",
-locale: "en",
-toolbar_bg: "#f1f3f6",
-enable_publishing: false,
-hide_side_toolbar: false,
-allow_symbol_change: true,
-container_id: "tradingview_chart",
-studies: [
+
+width:"100%",
+height:650,
+symbol:"BINANCE:"+coin,
+interval:interval,
+theme:"dark",
+style:"1",
+container_id:"chart",
+
+studies:[
 "RSI@tv-basicstudies",
-"MACD@tv-basicstudies"
+"MACD@tv-basicstudies",
+"MASimple@tv-basicstudies"
 ]
+
 });
+
+}
+
 </script>
 
-</div>
-
-<div class="liquidity">
-Best Liquidity Zone
-<br>
-<span class="zone">$63,000 - $63,400</span>
-</div>
-
 </body>
-</html>
+  </html>

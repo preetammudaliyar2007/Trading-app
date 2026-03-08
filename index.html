@@ -7,43 +7,30 @@
 
 <style>
 
-*{
-box-sizing:border-box;
-}
-
 body{
 margin:0;
 background:#081b33;
 font-family:Arial;
 color:white;
-height:100vh;
-display:flex;
-flex-direction:column;
 overflow:hidden;
 }
 
-/* HEADER */
-
 header{
-height:6%;
+height:40px;
 background:#051426;
 display:flex;
-justify-content:space-between;
 align-items:center;
-padding:8px 10px;
+justify-content:space-between;
+padding:5px 10px;
 }
 
-/* CHART */
-
 #chart{
-height:60%;
 width:100%;
 }
 
-/* PANEL AREA */
+/* PANELS */
 
 .panel{
-height:34%;
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:6px;
@@ -52,13 +39,13 @@ padding:6px;
 
 .box{
 background:#061a31;
-border-radius:6px;
 padding:6px;
+border-radius:5px;
 font-size:12px;
 }
 
 h3{
-margin:2px 0;
+margin:3px 0;
 font-size:13px;
 color:#00ff9c;
 }
@@ -69,7 +56,6 @@ height:12px;
 background:#222;
 border-radius:3px;
 overflow:hidden;
-margin-top:4px;
 }
 
 #buybar{
@@ -80,21 +66,6 @@ width:50%;
 #sellbar{
 background:#ff4040;
 width:50%;
-}
-
-.result{
-text-align:center;
-font-size:16px;
-margin-top:4px;
-}
-
-footer{
-position:absolute;
-bottom:2px;
-width:100%;
-text-align:center;
-font-size:10px;
-opacity:0.6;
 }
 
 </style>
@@ -108,8 +79,6 @@ opacity:0.6;
 <option value="BTCUSDT">BTC</option>
 <option value="ETHUSDT">ETH</option>
 <option value="SOLUSDT">SOL</option>
-<option value="BNBUSDT">BNB</option>
-<option value="XRPUSDT">XRP</option>
 </select>
 
 <div>AI Crypto Analyzer</div>
@@ -125,7 +94,6 @@ opacity:0.6;
 Entry: <span id="entry"></span><br>
 TP: <span id="tp"></span><br>
 SL: <span id="sl"></span>
-<div class="result" id="result"></div>
 </div>
 
 <div class="box">
@@ -147,43 +115,52 @@ Supply: <span id="supply"></span>
 <div id="pattern">Scanning...</div>
 </div>
 
-<div class="box">
-<h3>Key Level</h3>
-<div id="leveltest"></div>
 </div>
-
-<div class="box">
-Win Rate: <span id="winrate">0%</span>
-</div>
-
-</div>
-
-<footer>
-Powered by Preetam Mudaliyar | Sourced by ChatGPT
-</footer>
 
 <script>
 
 let symbol="BTCUSDT"
-let entry=0,tp=0,sl=0,position=""
-let wins=0,losses=0
+
+/* FORCE 60% CHART HEIGHT */
+
+function setChartHeight(){
+
+let screenHeight=window.innerHeight
+let chartHeight=screenHeight*0.60
+
+document.getElementById("chart").style.height=
+chartHeight+"px"
+
+}
+
+/* LOAD CHART */
 
 function loadChart(){
+
+setChartHeight()
 
 document.getElementById("chart").innerHTML=""
 
 new TradingView.widget({
 
 container_id:"chart",
+
 width:"100%",
+
 height:"100%",
+
 symbol:"BINANCE:"+symbol,
+
 interval:"5",
+
 theme:"dark",
+
 style:"1",
-locale:"en",
+
 toolbar_bg:"#081b33",
+
 hide_side_toolbar:false,
+
 allow_symbol_change:false
 
 })
@@ -192,10 +169,16 @@ allow_symbol_change:false
 
 loadChart()
 
+/* COIN CHANGE */
+
 document.getElementById("coinSelect").onchange=function(){
+
 symbol=this.value
 loadChart()
+
 }
+
+/* BASIC AI TRADE */
 
 async function getPrice(){
 
@@ -208,77 +191,15 @@ return parseFloat(d.price)
 
 }
 
-async function generateTrade(){
+async function updateTrade(){
 
 let price=await getPrice()
 
 let move=price*0.003
 
-position=Math.random()>0.5?"BUY":"SELL"
-
-entry=price
-
-if(position==="BUY"){
-tp=price+move
-sl=price-move
-}else{
-tp=price-move
-sl=price+move
-}
-
-document.getElementById("entry").innerText=entry.toFixed(2)
-document.getElementById("tp").innerText=tp.toFixed(2)
-document.getElementById("sl").innerText=sl.toFixed(2)
-
-}
-
-async function checkTrade(){
-
-if(entry===0)return
-
-let price=await getPrice()
-
-if(position==="BUY"){
-
-if(price>=tp){wins++;showTP()}
-if(price<=sl){losses++;showSL()}
-
-}else{
-
-if(price<=tp){wins++;showTP()}
-if(price>=sl){losses++;showSL()}
-
-}
-
-updateWinrate()
-
-}
-
-function showTP(){
-document.getElementById("result").innerText="👍 TP"
-entry=0
-setTimeout(generateTrade,3000)
-}
-
-function showSL(){
-document.getElementById("result").innerText="💀 SL"
-entry=0
-setTimeout(generateTrade,3000)
-}
-
-function updateWinrate(){
-
-let total=wins+losses
-if(total===0)return
-
-let rate=(wins/total*100).toFixed(1)
-document.getElementById("winrate").innerText=rate+"%"
-
-}
-
-async function updateZones(){
-
-let price=await getPrice()
+document.getElementById("entry").innerText=price.toFixed(2)
+document.getElementById("tp").innerText=(price+move).toFixed(2)
+document.getElementById("sl").innerText=(price-move).toFixed(2)
 
 document.getElementById("demand").innerText=(price*0.99).toFixed(2)
 document.getElementById("supply").innerText=(price*1.01).toFixed(2)
@@ -295,36 +216,10 @@ document.getElementById("sellbar").style.width=sell+"%"
 
 }
 
-function detectPattern(){
-
-let patterns=["Triangle","Bullish Flag","Bearish Flag","No pattern"]
-
-document.getElementById("pattern").innerText=
-patterns[Math.floor(Math.random()*patterns.length)]
-
-}
-
-async function detectLevel(){
-
-let price=await getPrice()
-
-let level=Math.round(price)
-let tests=3+Math.floor(Math.random()*3)
-
-document.getElementById("leveltest").innerText=
-"Level "+level+" tested "+tests+" times (15m)"
-
-}
-
-generateTrade()
-
-setInterval(checkTrade,4000)
-setInterval(updateZones,12000)
-setInterval(updatePower,15000)
-setInterval(detectPattern,20000)
-setInterval(detectLevel,20000)
+setInterval(updateTrade,8000)
+setInterval(updatePower,12000)
 
 </script>
 
 </body>
-  </html>
+         </html>

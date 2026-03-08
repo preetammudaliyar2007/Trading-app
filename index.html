@@ -1,112 +1,162 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Smart Crypto Trading Platform</title>
+
+<title>Preetam Smart Crypto Terminal</title>
 
 <style>
 
 body{
 margin:0;
+background:#000;
+color:#fff;
 font-family:Arial;
-background:#0b0f1a;
-color:white;
 }
 
-/* start screen */
+/* HEADER */
 
-.start{
+.header{
+display:flex;
+justify-content:space-between;
+padding:12px;
+border-bottom:2px solid #39ff14;
+}
+
+.logo{
+color:#39ff14;
+font-size:20px;
+font-weight:bold;
+}
+
+/* INTRO SCREEN */
+
+.intro{
 display:flex;
 flex-direction:column;
 justify-content:center;
 align-items:center;
 height:100vh;
+text-align:center;
+}
+
+.patterns{
+color:#39ff14;
+margin:20px;
 }
 
 .coin{
-padding:14px 24px;
-margin:8px;
-font-size:18px;
-background:#111827;
-color:white;
-border:none;
-border-radius:6px;
+border:2px solid #39ff14;
+background:black;
+color:#39ff14;
+padding:12px 20px;
+margin:6px;
 cursor:pointer;
 }
 
 .coin:hover{
-background:#00ff88;
+background:#39ff14;
 color:black;
 }
 
-/* header */
+/* MAIN LAYOUT */
 
-.header{
-background:#111827;
-padding:15px;
+.workspace{
 display:flex;
-justify-content:space-between;
+height:80vh;
 }
 
-.logo{
-color:#00ff88;
-font-weight:bold;
+/* CHART */
+
+.chart{
+flex:2;
+padding:10px;
+border-right:2px solid #39ff14;
 }
 
-/* layout */
+/* ANALYSIS */
 
-.container{
-display:flex;
-height:92vh;
-}
-
-.sidebar{
-width:260px;
-background:#111827;
-padding:12px;
+.analysis{
+flex:1;
+padding:10px;
+background:#050505;
 }
 
 .panel{
-background:#1f2937;
-margin-top:10px;
+border:1px solid #39ff14;
 padding:10px;
-border-radius:6px;
+margin-bottom:10px;
 }
 
-.chart-area{
-flex:1;
-padding:10px;
+.panel-title{
+color:#39ff14;
+font-weight:bold;
+margin-bottom:6px;
 }
 
-/* buttons */
+.buy{color:#39ff14;}
+.sell{color:red;}
+
+/* MARKET BAR */
+
+.marketbar{
+display:flex;
+overflow-x:auto;
+border-top:2px solid #39ff14;
+padding:6px;
+}
+
+.marketcoin{
+margin-right:20px;
+color:#39ff14;
+}
+
+/* FOOTER */
+
+.footer{
+text-align:center;
+padding:8px;
+border-top:2px solid #39ff14;
+font-size:13px;
+}
 
 button{
-background:#1f2937;
-color:white;
-border:none;
-padding:6px 10px;
+background:black;
+border:1px solid #39ff14;
+color:#39ff14;
+padding:5px 8px;
 margin:3px;
 cursor:pointer;
 }
 
 button:hover{
-background:#00ff88;
+background:#39ff14;
 color:black;
 }
 
-.buy{color:#00ff88;}
-.sell{color:#ff4444;}
-.zone{color:orange;}
-
 </style>
+
 </head>
 
 <body>
 
-<!-- start screen -->
+<!-- INTRO -->
 
-<div id="start" class="start">
+<div id="intro" class="intro">
 
-<h1>Select Coin</h1>
+<h1 style="color:#39ff14">Smart Crypto Trading Terminal</h1>
+
+<div class="patterns">
+
+Detected Market Patterns
+
+<br>• Bull Flag  
+<br>• Ascending Triangle  
+<br>• Liquidity Sweep  
+<br>• Smart Money Accumulation  
+
+</div>
+
+<h3>Select Coin</h3>
 
 <button class="coin" onclick="start('BTCUSDT')">Bitcoin</button>
 <button class="coin" onclick="start('ETHUSDT')">Ethereum</button>
@@ -114,56 +164,29 @@ color:black;
 <button class="coin" onclick="start('BNBUSDT')">BNB</button>
 <button class="coin" onclick="start('XRPUSDT')">XRP</button>
 <button class="coin" onclick="start('DOGEUSDT')">Dogecoin</button>
-<button class="coin" onclick="start('ADAUSDT')">Cardano</button>
-<button class="coin" onclick="start('AVAXUSDT')">Avalanche</button>
-<button class="coin" onclick="start('MATICUSDT')">Polygon</button>
 
 </div>
 
-<!-- dashboard -->
+<!-- TERMINAL -->
 
-<div id="dashboard" style="display:none;">
+<div id="terminal" style="display:none">
 
 <div class="header">
-<div class="logo">Smart Trading Terminal</div>
+
+<div class="logo">Preetam Smart Terminal</div>
+
 <div id="coinname"></div>
-</div>
-
-<div class="container">
-
-<div class="sidebar">
-
-<div class="panel">
-Trend Signal<br>
-<span class="buy">STRONG BUY</span>
-</div>
-
-<div class="panel">
-Whale Trades<br>
-<span class="buy">🐋 Buy: Large Volume</span><br>
-<span class="sell">🐋 Sell: Large Volume</span>
-</div>
-
-<div class="panel">
-Liquidity Zone<br>
-<span class="zone">$63k - $63.4k</span>
-</div>
-
-<div class="panel">
-Demand Zone<br>
-$62k - $62.8k
-</div>
-
-<div class="panel">
-Supply Zone<br>
-$64k - $64.7k
-</div>
 
 </div>
 
-<div class="chart-area">
+<div class="workspace">
+
+<!-- CHART -->
+
+<div class="chart">
 
 Timeframe
+
 <button onclick="loadChart('5')">5m</button>
 <button onclick="loadChart('15')">15m</button>
 <button onclick="loadChart('60')">1H</button>
@@ -172,6 +195,66 @@ Timeframe
 <div id="chart"></div>
 
 </div>
+
+<!-- ANALYSIS -->
+
+<div class="analysis">
+
+<div class="panel">
+<div class="panel-title">Trend Signal</div>
+<span class="buy">Strong Buy</span>
+</div>
+
+<div class="panel">
+<div class="panel-title">Demand Zone</div>
+$62,400 – $62,800
+</div>
+
+<div class="panel">
+<div class="panel-title">Supply Zone</div>
+$64,200 – $64,700
+</div>
+
+<div class="panel">
+<div class="panel-title">Liquidity Area</div>
+$63,000 – $63,400
+</div>
+
+<div class="panel">
+<div class="panel-title">Whale Activity</div>
+<span class="buy">🐋 Whale Buying</span><br>
+<span class="sell">🐋 Whale Selling</span>
+</div>
+
+<div class="panel">
+<div class="panel-title">Market Phase</div>
+Accumulation
+</div>
+
+</div>
+
+</div>
+
+<!-- MARKET BAR -->
+
+<div class="marketbar">
+
+<div class="marketcoin">BTC</div>
+<div class="marketcoin">ETH</div>
+<div class="marketcoin">SOL</div>
+<div class="marketcoin">BNB</div>
+<div class="marketcoin">XRP</div>
+<div class="marketcoin">DOGE</div>
+<div class="marketcoin">ADA</div>
+<div class="marketcoin">AVAX</div>
+
+</div>
+
+<div class="footer">
+
+Powered by Preetam Mudaliyar  
+<br>
+Sourced by ChatGPT
 
 </div>
 
@@ -187,8 +270,8 @@ function start(c){
 
 coin=c;
 
-document.getElementById("start").style.display="none";
-document.getElementById("dashboard").style.display="block";
+document.getElementById("intro").style.display="none";
+document.getElementById("terminal").style.display="block";
 
 document.getElementById("coinname").innerText=c;
 
@@ -203,18 +286,12 @@ document.getElementById("chart").innerHTML="";
 new TradingView.widget({
 
 width:"100%",
-height:650,
+height:550,
 symbol:"BINANCE:"+coin,
 interval:interval,
 theme:"dark",
 style:"1",
-container_id:"chart",
-
-studies:[
-"RSI@tv-basicstudies",
-"MACD@tv-basicstudies",
-"MASimple@tv-basicstudies"
-]
+container_id:"chart"
 
 });
 
@@ -223,4 +300,5 @@ studies:[
 </script>
 
 </body>
+
   </html>

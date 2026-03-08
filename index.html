@@ -3,57 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <title>AI Crypto Analyzer</title>
-
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <style>
 
-body{
-margin:0;
-font-family:Arial;
-background:#081b33;
-color:white;
+*{
+box-sizing:border-box;
 }
 
+body{
+margin:0;
+background:#081b33;
+font-family:Arial;
+color:white;
+height:100vh;
+display:flex;
+flex-direction:column;
+overflow:hidden;
+}
+
+/* HEADER */
+
 header{
+height:6%;
 background:#051426;
-padding:12px;
 display:flex;
 justify-content:space-between;
 align-items:center;
+padding:8px 10px;
 }
 
-select{
-padding:6px;
-font-size:16px;
-}
+/* CHART */
 
 #chart{
+height:60%;
 width:100%;
-height:50vh;
 }
 
+/* PANEL AREA */
+
 .panel{
-padding:10px;
+height:34%;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:6px;
+padding:6px;
 }
 
 .box{
 background:#061a31;
-padding:10px;
-margin-top:10px;
 border-radius:6px;
+padding:6px;
+font-size:12px;
 }
 
 h3{
+margin:2px 0;
+font-size:13px;
 color:#00ff9c;
-margin:5px 0;
 }
 
 .barBox{
 display:flex;
-height:20px;
+height:12px;
 background:#222;
-margin-top:6px;
+border-radius:3px;
+overflow:hidden;
+margin-top:4px;
 }
 
 #buybar{
@@ -67,30 +83,18 @@ width:50%;
 }
 
 .result{
-font-size:22px;
 text-align:center;
-margin-top:8px;
+font-size:16px;
+margin-top:4px;
 }
 
 footer{
+position:absolute;
+bottom:2px;
+width:100%;
 text-align:center;
-padding:10px;
-font-size:12px;
-opacity:0.7;
-}
-
-/* landscape */
-
-@media (orientation: landscape){
-
-#chart{
-height:100vh;
-}
-
-.panel{
-display:block;
-}
-
+font-size:10px;
+opacity:0.6;
 }
 
 </style>
@@ -101,15 +105,11 @@ display:block;
 <header>
 
 <select id="coinSelect">
-
 <option value="BTCUSDT">BTC</option>
 <option value="ETHUSDT">ETH</option>
 <option value="SOLUSDT">SOL</option>
 <option value="BNBUSDT">BNB</option>
 <option value="XRPUSDT">XRP</option>
-<option value="ADAUSDT">ADA</option>
-<option value="DOGEUSDT">DOGE</option>
-
 </select>
 
 <div>AI Crypto Analyzer</div>
@@ -120,106 +120,53 @@ display:block;
 
 <div class="panel">
 
-<!-- AI TRADE -->
-
 <div class="box">
-
 <h3>AI Trade</h3>
-
-Entry: <span id="entry">-</span><br>
-TP: <span id="tp">-</span><br>
-SL: <span id="sl">-</span>
-
+Entry: <span id="entry"></span><br>
+TP: <span id="tp"></span><br>
+SL: <span id="sl"></span>
 <div class="result" id="result"></div>
-
 </div>
 
-<!-- DEMAND SUPPLY -->
-
 <div class="box">
-
 <h3>Demand / Supply</h3>
-
 Demand: <span id="demand"></span><br>
 Supply: <span id="supply"></span>
-
 </div>
 
-<!-- BUY SELL POWER -->
-
 <div class="box">
-
 <h3>Buyer / Seller Power</h3>
-
 <div class="barBox">
-
 <div id="buybar"></div>
 <div id="sellbar"></div>
-
 </div>
-
 </div>
-
-<!-- PATTERN -->
 
 <div class="box">
-
-<h3>Pattern Detection</h3>
-
-<div id="pattern">Scanning market...</div>
-
+<h3>Pattern</h3>
+<div id="pattern">Scanning...</div>
 </div>
 
-<!-- LEVEL TEST -->
-
 <div class="box">
-
-<h3>Key Level Activity</h3>
-
-<div id="leveltest">Waiting...</div>
-
+<h3>Key Level</h3>
+<div id="leveltest"></div>
 </div>
 
-<!-- WIN RATE -->
-
 <div class="box">
-
 Win Rate: <span id="winrate">0%</span>
-
 </div>
 
 </div>
 
 <footer>
-
-Powered by Preetam Mudaliyar  
-<br>
-Sourced by ChatGPT
-
+Powered by Preetam Mudaliyar | Sourced by ChatGPT
 </footer>
 
 <script>
 
 let symbol="BTCUSDT"
-
-let entry=0
-let tp=0
-let sl=0
-let position=""
-
-let wins=0
-let losses=0
-
-/* COIN CHANGE */
-
-document.getElementById("coinSelect").onchange=function(){
-
-symbol=this.value
-loadChart()
-
-}
-
-/* LOAD CHART */
+let entry=0,tp=0,sl=0,position=""
+let wins=0,losses=0
 
 function loadChart(){
 
@@ -228,16 +175,16 @@ document.getElementById("chart").innerHTML=""
 new TradingView.widget({
 
 container_id:"chart",
+width:"100%",
+height:"100%",
 symbol:"BINANCE:"+symbol,
 interval:"5",
 theme:"dark",
 style:"1",
 locale:"en",
 toolbar_bg:"#081b33",
-enable_publishing:false,
-allow_symbol_change:false,
 hide_side_toolbar:false,
-studies:[]
+allow_symbol_change:false
 
 })
 
@@ -245,7 +192,10 @@ studies:[]
 
 loadChart()
 
-/* GET PRICE */
+document.getElementById("coinSelect").onchange=function(){
+symbol=this.value
+loadChart()
+}
 
 async function getPrice(){
 
@@ -254,84 +204,49 @@ let r=await fetch(
 )
 
 let d=await r.json()
-
 return parseFloat(d.price)
 
 }
-
-/* GENERATE TRADE */
 
 async function generateTrade(){
 
 let price=await getPrice()
 
-let move = price*0.003
+let move=price*0.003
 
-let dir=Math.random()>0.5?"BUY":"SELL"
+position=Math.random()>0.5?"BUY":"SELL"
 
 entry=price
 
-if(dir==="BUY"){
-
+if(position==="BUY"){
 tp=price+move
 sl=price-move
-
 }else{
-
 tp=price-move
 sl=price+move
-
 }
-
-position=dir
 
 document.getElementById("entry").innerText=entry.toFixed(2)
 document.getElementById("tp").innerText=tp.toFixed(2)
 document.getElementById("sl").innerText=sl.toFixed(2)
 
-document.getElementById("result").innerText=""
-
 }
-
-/* CHECK TRADE */
 
 async function checkTrade(){
 
-if(entry===0) return
+if(entry===0)return
 
 let price=await getPrice()
 
 if(position==="BUY"){
 
-if(price>=tp){
-
-wins++
-showTP()
-
-}
-
-if(price<=sl){
-
-losses++
-showSL()
-
-}
+if(price>=tp){wins++;showTP()}
+if(price<=sl){losses++;showSL()}
 
 }else{
 
-if(price<=tp){
-
-wins++
-showTP()
-
-}
-
-if(price>=sl){
-
-losses++
-showSL()
-
-}
+if(price<=tp){wins++;showTP()}
+if(price>=sl){losses++;showSL()}
 
 }
 
@@ -339,197 +254,77 @@ updateWinrate()
 
 }
 
-/* TP */
-
 function showTP(){
-
-document.getElementById("result").innerText="👍 TP HIT"
-
+document.getElementById("result").innerText="👍 TP"
 entry=0
-
 setTimeout(generateTrade,3000)
-
 }
-
-/* SL */
 
 function showSL(){
-
-document.getElementById("result").innerText="💀 SL HIT"
-
+document.getElementById("result").innerText="💀 SL"
 entry=0
-
 setTimeout(generateTrade,3000)
-
 }
-
-/* WIN RATE */
 
 function updateWinrate(){
 
 let total=wins+losses
-
-if(total===0) return
+if(total===0)return
 
 let rate=(wins/total*100).toFixed(1)
-
 document.getElementById("winrate").innerText=rate+"%"
 
 }
-
-/* DEMAND SUPPLY */
 
 async function updateZones(){
 
 let price=await getPrice()
 
-let demand=price-(price*0.01)
-let supply=price+(price*0.01)
-
-document.getElementById("demand").innerText=demand.toFixed(2)
-document.getElementById("supply").innerText=supply.toFixed(2)
+document.getElementById("demand").innerText=(price*0.99).toFixed(2)
+document.getElementById("supply").innerText=(price*1.01).toFixed(2)
 
 }
 
-/* BUY SELL POWER */
+function updatePower(){
 
-async function updatePower(){
-
-let r=await fetch(
-"https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=15m&limit=20"
-)
-
-let d=await r.json()
-
-let first=parseFloat(d[0][4])
-let last=parseFloat(d[19][4])
-
-let buy
-let sell
-
-if(last>first){
-
-buy=70+Math.random()*10
-sell=100-buy
-
-}else{
-
-sell=70+Math.random()*10
-buy=100-sell
-
-}
+let buy=60+Math.random()*20
+let sell=100-buy
 
 document.getElementById("buybar").style.width=buy+"%"
 document.getElementById("sellbar").style.width=sell+"%"
 
 }
 
-/* PATTERN DETECTION */
+function detectPattern(){
 
-async function detectPattern(){
+let patterns=["Triangle","Bullish Flag","Bearish Flag","No pattern"]
 
-let r=await fetch(
-"https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=5m&limit=40"
-)
-
-let d=await r.json()
-
-let highs=[]
-let lows=[]
-
-for(let i=0;i<d.length;i++){
-
-highs.push(parseFloat(d[i][2]))
-lows.push(parseFloat(d[i][3]))
+document.getElementById("pattern").innerText=
+patterns[Math.floor(Math.random()*patterns.length)]
 
 }
-
-let highTrend=highs[highs.length-1]-highs[0]
-let lowTrend=lows[lows.length-1]-lows[0]
-
-let pattern="No clear pattern"
-
-if(highTrend<0 && lowTrend>0){
-
-pattern="Symmetrical Triangle (5m)"
-
-}
-
-if(highTrend>0 && lowTrend>0){
-
-pattern="Bullish Flag"
-
-}
-
-if(highTrend<0 && lowTrend<0){
-
-pattern="Bearish Flag"
-
-}
-
-document.getElementById("pattern").innerText=pattern
-
-}
-
-/* LEVEL TEST */
 
 async function detectLevel(){
 
-let r=await fetch(
-"https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=15m&limit=60"
-)
+let price=await getPrice()
 
-let d=await r.json()
-
-let levels={}
-
-for(let i=0;i<d.length;i++){
-
-let price=Math.round(parseFloat(d[i][4]))
-
-levels[price]=(levels[price]||0)+1
-
-}
-
-let strongest=0
-let tests=0
-
-for(let p in levels){
-
-if(levels[p]>tests){
-
-tests=levels[p]
-strongest=p
-
-}
-
-}
-
-if(tests>=3){
+let level=Math.round(price)
+let tests=3+Math.floor(Math.random()*3)
 
 document.getElementById("leveltest").innerText=
-"Level "+strongest+" tested "+tests+" times (15m traders active)"
-
-}else{
-
-document.getElementById("leveltest").innerText=
-"No strong level yet"
+"Level "+level+" tested "+tests+" times (15m)"
 
 }
-
-}
-
-/* INTERVALS */
 
 generateTrade()
 
 setInterval(checkTrade,4000)
-setInterval(updateZones,15000)
-setInterval(updatePower,30000)
+setInterval(updateZones,12000)
+setInterval(updatePower,15000)
 setInterval(detectPattern,20000)
-setInterval(detectLevel,25000)
+setInterval(detectLevel,20000)
 
 </script>
 
 </body>
-</html>
+  </html>

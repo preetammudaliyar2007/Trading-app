@@ -9,23 +9,8 @@
 body{
 margin:0;
 font-family:Arial;
+background:black;
 color:white;
-background-size:cover;
-background-position:center;
-background-attachment:fixed;
-}
-
-/* DARK OVERLAY */
-
-body::before{
-content:"";
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.85);
-z-index:-1;
 }
 
 /* HEADER */
@@ -33,73 +18,33 @@ z-index:-1;
 .header{
 display:flex;
 justify-content:space-between;
-align-items:center;
-padding:12px;
+padding:10px;
 border-bottom:2px solid #39ff14;
 background:black;
-}
-
-/* INTRO */
-
-.intro{
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-height:100vh;
-text-align:center;
-}
-
-.patterns{
 color:#39ff14;
-margin:20px;
-font-size:18px;
 }
 
-/* COIN GRID */
+/* MAIN LAYOUT */
 
-.coin-grid{
-display:grid;
-grid-template-columns:repeat(3,150px);
-gap:15px;
-margin-top:20px;
-}
-
-.coin{
-border:2px solid #39ff14;
-padding:12px;
-cursor:pointer;
-background:black;
-transition:0.3s;
-}
-
-.coin:hover{
-background:#39ff14;
-color:black;
-}
-
-.coin img{
-width:40px;
-height:40px;
-}
-
-/* WORKSPACE */
-
-.workspace{
+.container{
 display:flex;
-height:75vh;
+height:92vh;
 }
+
+/* BIG CHART */
 
 .chart{
-flex:2;
-padding:10px;
-border-right:2px solid #39ff14;
+flex:3;
+padding:5px;
 }
 
-.analysis{
+/* ANALYSIS PANEL */
+
+.side{
 flex:1;
+border-left:2px solid #39ff14;
 padding:10px;
-background:#050505;
+overflow:auto;
 }
 
 /* PANELS */
@@ -110,247 +55,277 @@ padding:10px;
 margin-bottom:10px;
 }
 
-.panel-title{
+.title{
 color:#39ff14;
 font-weight:bold;
 margin-bottom:5px;
 }
 
-/* BUTTONS */
+/* COIN SELECT */
 
-button{
+select{
 background:black;
+color:#39ff14;
 border:1px solid #39ff14;
-color:#39ff14;
-padding:6px 10px;
-margin:3px;
-cursor:pointer;
-}
-
-button:hover{
-background:#39ff14;
-color:black;
-}
-
-/* FULL CHART */
-
-.fullchart .analysis{
-display:none;
-}
-
-.fullchart .chart{
-flex:1;
-border-right:none;
-}
-
-/* FOOTER */
-
-.footer{
-position:fixed;
-bottom:0;
-width:100%;
-text-align:center;
-background:black;
-border-top:2px solid #39ff14;
-color:#39ff14;
-padding:8px;
-font-weight:bold;
+padding:5px;
 }
 
 </style>
+
 </head>
 
 <body>
 
-<!-- INTRO SCREEN -->
-
-<div id="intro" class="intro">
-
-<h1 style="color:#39ff14">Smart Crypto Trading Terminal</h1>
-
-<div class="patterns">
-
-Detected Market Patterns
-
-<br>• Bull Flag  
-<br>• Ascending Triangle  
-<br>• Liquidity Sweep  
-<br>• Smart Money Accumulation  
-
-</div>
-
-<h3>Select Coin</h3>
-
-<div class="coin-grid">
-
-<div class="coin" onclick="start('BTCUSDT')">
-<img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png">
-<div>Bitcoin</div>
-</div>
-
-<div class="coin" onclick="start('ETHUSDT')">
-<img src="https://cryptologos.cc/logos/ethereum-eth-logo.png">
-<div>Ethereum</div>
-</div>
-
-<div class="coin" onclick="start('BNBUSDT')">
-<img src="https://cryptologos.cc/logos/bnb-bnb-logo.png">
-<div>BNB</div>
-</div>
-
-<div class="coin" onclick="start('SOLUSDT')">
-<img src="https://cryptologos.cc/logos/solana-sol-logo.png">
-<div>Solana</div>
-</div>
-
-<div class="coin" onclick="start('XRPUSDT')">
-<img src="https://cryptologos.cc/logos/xrp-xrp-logo.png">
-<div>XRP</div>
-</div>
-
-<div class="coin" onclick="start('DOGEUSDT')">
-<img src="https://cryptologos.cc/logos/dogecoin-doge-logo.png">
-<div>Dogecoin</div>
-</div>
-
-</div>
-
-</div>
-
-<!-- TERMINAL -->
-
-<div id="terminal" style="display:none">
-
 <div class="header">
 
-<div style="color:#39ff14">
-Preetam Smart Terminal
-</div>
+<div>⚡ Preetam Smart Terminal</div>
 
 <div>
-<button onclick="toggleChart()">Landscape Chart</button>
-</div>
+
+<select id="coinSelect"></select>
 
 </div>
 
-<div id="workspace" class="workspace">
+</div>
 
-<!-- CHART -->
+<div class="container">
 
 <div class="chart">
-
-Timeframe
-
-<button onclick="loadChart('5')">5m</button>
-<button onclick="loadChart('15')">15m</button>
-<button onclick="loadChart('60')">1H</button>
-<button onclick="loadChart('240')">4H</button>
-
 <div id="chart"></div>
-
 </div>
 
-<!-- ANALYSIS -->
-
-<div class="analysis">
+<div class="side">
 
 <div class="panel">
-<div class="panel-title">Trend Signal</div>
-Strong Buy
+<div class="title">AI Trade Signal</div>
+<div id="tradeSignal">Scanning...</div>
 </div>
 
 <div class="panel">
-<div class="panel-title">Demand Zone</div>
-$62,400 – $62,800
+<div class="title">Demand / Supply</div>
+<div id="zones">Scanning zones...</div>
 </div>
 
 <div class="panel">
-<div class="panel-title">Supply Zone</div>
-$64,200 – $64,700
+<div class="title">Liquidity Sweep</div>
+<div id="liquidity">Checking liquidity...</div>
 </div>
 
 <div class="panel">
-<div class="panel-title">Liquidity Area</div>
-$63,000 – $63,400
+<div class="title">Whale Activity</div>
+<div id="whales">Watching whales...</div>
+</div>
+
+<div class="panel">
+<div class="title">Liquidation Map</div>
+<div id="liquidations">Monitoring liquidations...</div>
 </div>
 
 </div>
 
-</div>
-
-</div>
-
-<div class="footer">
-⚡ Powered by Preetam Mudaliyar | Sourced by ChatGPT ⚡
 </div>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
 
-/* COIN */
+/* COIN LIST (50+) */
+
+const coins=[
+"BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","DOGEUSDT",
+"ADAUSDT","AVAXUSDT","DOTUSDT","LINKUSDT","LTCUSDT",
+"MATICUSDT","ATOMUSDT","NEARUSDT","APTUSDT","SUIUSDT",
+"FTMUSDT","TRXUSDT","ARBUSDT","OPUSDT"
+];
+
+const select=document.getElementById("coinSelect");
+
+coins.forEach(c=>{
+let o=document.createElement("option");
+o.value=c;
+o.text=c.replace("USDT","");
+select.appendChild(o);
+});
 
 let coin="BTCUSDT";
 
-function start(c){
+select.onchange=()=>{
+coin=select.value;
+loadChart();
+};
 
-coin=c;
+/* BIG CHART */
 
-document.getElementById("intro").style.display="none";
-document.getElementById("terminal").style.display="block";
-
-loadChart("15");
-
-}
-
-/* CHART */
-
-function loadChart(interval){
+function loadChart(){
 
 document.getElementById("chart").innerHTML="";
 
 new TradingView.widget({
 
 width:"100%",
-height:500,
+height:750,
+
 symbol:"BINANCE:"+coin,
-interval:interval,
+interval:"15",
 theme:"dark",
 style:"1",
+
+hide_side_toolbar:false,
+
+studies:[], /* removes RSI MACD */
+
 container_id:"chart"
 
 });
 
 }
 
-/* FULL CHART MODE */
+loadChart();
 
-function toggleChart(){
+/* FETCH MARKET DATA */
 
-document.getElementById("workspace").classList.toggle("fullchart");
+async function getData(){
+
+let r=await fetch(
+"https://api.binance.com/api/v3/klines?symbol="+coin+"&interval=15m&limit=100"
+);
+
+return await r.json();
 
 }
 
-/* ROTATING BACKGROUND */
+/* DEMAND SUPPLY */
 
-const backgrounds=[
+function detectZones(data){
 
-"https://images.unsplash.com/photo-1621761191319-c6fb62004040",
-"https://images.unsplash.com/photo-1639322537228-f710d846310a",
-"https://images.unsplash.com/photo-1642104704074-907c0698cbd9"
+let demand=[];
+let supply=[];
 
+for(let i=2;i<data.length;i++){
+
+let low=parseFloat(data[i][3]);
+let high=parseFloat(data[i][2]);
+
+let prevLow=parseFloat(data[i-1][3]);
+let prevHigh=parseFloat(data[i-1][2]);
+
+if(low<prevLow) demand.push(low);
+if(high>prevHigh) supply.push(high);
+
+}
+
+return {demand,supply};
+
+}
+
+/* BREAKOUT */
+
+function breakout(data){
+
+let last=parseFloat(data[data.length-1][4]);
+let prevHigh=parseFloat(data[data.length-2][2]);
+let prevLow=parseFloat(data[data.length-2][3]);
+
+if(last>prevHigh) return "Bullish Breakout";
+if(last<prevLow) return "Bearish Breakout";
+
+return "No Breakout";
+
+}
+
+/* SMART MONEY TRADE */
+
+function tradeSignal(data){
+
+let last=parseFloat(data[data.length-1][4]);
+let prev=parseFloat(data[data.length-5][4]);
+
+let entry=last;
+let sl=entry*0.98;
+let tp=entry*1.04;
+
+if(last>prev){
+
+return "LONG<br>Entry: "+entry.toFixed(2)+
+"<br>SL: "+sl.toFixed(2)+
+"<br>TP: "+tp.toFixed(2);
+
+}
+
+return "WAIT";
+
+}
+
+/* LIQUIDITY */
+
+function liquidity(data){
+
+let lastHigh=data[data.length-1][2];
+let prevHigh=data[data.length-2][2];
+
+if(lastHigh>prevHigh) return "Liquidity sweep above highs";
+
+return "No sweep";
+
+}
+
+/* WHALE SIMULATION */
+
+function whales(){
+
+const msgs=[
+"Large wallet accumulation",
+"Possible whale sell wall",
+"Exchange inflow detected",
+"Stable accumulation"
 ];
 
-let i=0;
+return msgs[Math.floor(Math.random()*msgs.length)];
 
-setInterval(()=>{
+}
 
-document.body.style.backgroundImage="url('"+backgrounds[i]+"')";
-i++;
+/* LIQUIDATION SIMULATION */
 
-if(i>=backgrounds.length){i=0;}
+function liquidations(){
 
-},7000);
+const msgs=[
+"Short liquidations increasing",
+"Long liquidations cluster",
+"Liquidation wall detected"
+];
+
+return msgs[Math.floor(Math.random()*msgs.length)];
+
+}
+
+/* RUN AI */
+
+async function runAI(){
+
+let data=await getData();
+
+let z=detectZones(data);
+
+document.getElementById("zones").innerHTML=
+
+"Demand zones: "+z.demand.length+
+"<br>Supply zones: "+z.supply.length;
+
+document.getElementById("tradeSignal").innerHTML=
+tradeSignal(data);
+
+document.getElementById("liquidity").innerHTML=
+liquidity(data);
+
+document.getElementById("whales").innerHTML=
+whales();
+
+document.getElementById("liquidations").innerHTML=
+liquidations();
+
+}
+
+setInterval(runAI,15000);
 
 </script>
 

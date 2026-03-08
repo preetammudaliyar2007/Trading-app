@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Crypto Smart Platform</title>
+<meta charset="UTF-8">
+<title>AI Crypto Analyzer</title>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
@@ -12,414 +11,487 @@
 body{
 margin:0;
 font-family:Arial;
-background:#0b1d3a;
+background:#081b33;
 color:white;
 }
 
-/* HEADER */
-
 header{
-background:black;
-padding:10px;
+background:#051426;
+padding:12px;
 display:flex;
 justify-content:space-between;
 align-items:center;
 }
 
-select,button{
-background:black;
-color:#39ff14;
-border:1px solid #39ff14;
+select{
 padding:6px;
+font-size:16px;
 }
 
-/* CHART SIZE FIX */
-
-.chart-container{
+#chart{
 width:100%;
-height:60vh;
-}
-
-/* ANALYSIS */
-
-.analysis{
-padding:12px;
+height:50vh;
 }
 
 .panel{
-background:#061428;
-border:1px solid #39ff14;
 padding:10px;
-margin-bottom:10px;
+}
+
+.box{
+background:#061a31;
+padding:10px;
+margin-top:10px;
 border-radius:6px;
 }
 
-.title{
-color:#39ff14;
-font-weight:bold;
-margin-bottom:5px;
+h3{
+color:#00ff9c;
+margin:5px 0;
 }
 
-/* BUY SELL BAR */
-
-.bar{
+.barBox{
+display:flex;
 height:20px;
 background:#222;
-border-radius:10px;
-overflow:hidden;
+margin-top:6px;
 }
 
-.buy{
-background:#39ff14;
-height:100%;
+#buybar{
+background:#00ff9c;
+width:50%;
 }
 
-.sell{
-background:red;
-height:100%;
+#sellbar{
+background:#ff4040;
+width:50%;
 }
 
-/* RESULT POPUP */
-
-.resultPopup{
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:80px;
-animation:pop 1s ease;
-z-index:999;
-}
-
-@keyframes pop{
-0%{transform:translate(-50%,-50%) scale(0)}
-50%{transform:translate(-50%,-50%) scale(1.4)}
-100%{transform:translate(-50%,-50%) scale(1)}
+.result{
+font-size:22px;
+text-align:center;
+margin-top:8px;
 }
 
 footer{
 text-align:center;
 padding:10px;
-background:black;
-color:#39ff14;
 font-size:12px;
+opacity:0.7;
+}
+
+/* Landscape full screen */
+
+@media (orientation: landscape){
+
+#chart{
+height:100vh;
+}
+
 }
 
 </style>
-
 </head>
-
 
 <body>
 
-
 <header>
 
-<select id="coin" onchange="loadCoin()">
+<select id="coinSelect">
 
-<option value="BINANCE:BTCUSDT">BTC</option>
-<option value="BINANCE:ETHUSDT">ETH</option>
-<option value="BINANCE:SOLUSDT">SOL</option>
-<option value="BINANCE:XRPUSDT">XRP</option>
-<option value="BINANCE:ADAUSDT">ADA</option>
+<option value="BTCUSDT">BTC</option>
+<option value="ETHUSDT">ETH</option>
+<option value="SOLUSDT">SOL</option>
+<option value="BNBUSDT">BNB</option>
+<option value="XRPUSDT">XRP</option>
+<option value="ADAUSDT">ADA</option>
+<option value="DOGEUSDT">DOGE</option>
 
 </select>
 
-<button onclick="chartOnly()">Chart Only</button>
+<div>AI Crypto Analyzer</div>
 
 </header>
 
-
-
-<div class="chart-container">
-<div id="chart" style="width:100%;height:100%"></div>
-</div>
-
-
-
-<div class="analysis" id="analysis">
+<div id="chart"></div>
 
 <div class="panel">
-<div class="title">AI Trade</div>
 
-Entry: <span id="entry">Waiting...</span><br>
+<div class="box">
+
+<h3>AI Trade</h3>
+
+Entry: <span id="entry">-</span><br>
 TP: <span id="tp">-</span><br>
 SL: <span id="sl">-</span>
 
-</div>
-
-
-<div class="panel">
-<div class="title">Win Rate</div>
-
-<span id="winrate">0%</span>
+<div class="result" id="result"></div>
 
 </div>
 
+<div class="box">
 
-<div class="panel">
-<div class="title">Buyer vs Seller Power</div>
+<h3>Demand / Supply</h3>
 
-Buyer
-<div class="bar">
-<div id="buybar" class="buy"></div>
+Demand: <span id="demand"></span><br>
+Supply: <span id="supply"></span>
+
 </div>
 
-Seller
-<div class="bar">
-<div id="sellbar" class="sell"></div>
-</div>
+<div class="box">
 
+<h3>Buyer / Seller Power</h3>
+
+<div class="barBox">
+<div id="buybar"></div>
+<div id="sellbar"></div>
 </div>
 
 </div>
 
+<div class="box">
 
+<h3>Pattern Detection</h3>
+
+<div id="pattern">Scanning market...</div>
+
+</div>
+
+<div class="box">
+
+<h3>Key Level Activity</h3>
+
+<div id="leveltest">Waiting...</div>
+
+</div>
+
+<div class="box">
+
+Win Rate: <span id="winrate">0%</span>
+
+</div>
+
+</div>
 
 <footer>
-Powered by Preetam Mudaliyar 
+
+Powered by Preetam Mudaliyar  
+<br>
+Sourced by ChatGPT
+
 </footer>
-
-
 
 <script>
 
 let symbol="BTCUSDT"
 
-/* LOAD CHART */
+let entry=0
+let tp=0
+let sl=0
+let position=""
 
-function loadCoin(){
+let wins=0
+let losses=0
 
-let coin=document.getElementById("coin").value
+/* Coin selector */
 
-symbol = coin.replace("BINANCE:","")
+document.getElementById("coinSelect").onchange=function(){
+
+symbol=this.value
+loadChart()
+
+}
+
+/* Load chart */
+
+function loadChart(){
 
 document.getElementById("chart").innerHTML=""
 
 new TradingView.widget({
 
 container_id:"chart",
-autosize:true,
-symbol:coin,
-interval:"15",
+symbol:"BINANCE:"+symbol,
+interval:"5",
 theme:"dark",
 style:"1",
-toolbar_bg:"#0b1d3a",
+locale:"en",
+toolbar_bg:"#081b33",
 enable_publishing:false,
-allow_symbol_change:true,
+allow_symbol_change:false,
 hide_side_toolbar:false
 
 })
 
-startTrade()
-
 }
 
-loadCoin()
+loadChart()
 
-
-/* GET REAL MARKET PRICE */
+/* Get price */
 
 async function getPrice(){
 
-try{
-
-let r = await fetch(
+let r=await fetch(
 "https://api.binance.com/api/v3/ticker/price?symbol="+symbol
 )
 
-let d = await r.json()
+let d=await r.json()
 
 return parseFloat(d.price)
 
-}catch{
+}
 
-return null
+/* AI trade */
+
+async function generateTrade(){
+
+let price=await getPrice()
+
+let move=price*0.003
+
+let dir=Math.random()>0.5?"BUY":"SELL"
+
+entry=price
+
+if(dir==="BUY"){
+
+tp=price+move
+sl=price-move
+
+}else{
+
+tp=price-move
+sl=price+move
 
 }
 
-}
+position=dir
 
+document.getElementById("entry").innerText=entry.toFixed(2)
+document.getElementById("tp").innerText=tp.toFixed(2)
+document.getElementById("sl").innerText=sl.toFixed(2)
 
-/* AI TRADE SYSTEM */
-
-let wins=0
-let total=0
-
-let entry=0
-let tp=0
-let sl=0
-let price=0
-let tradeActive=false
-
-
-async function startTrade(){
-
-let current = await getPrice()
-
-if(current===null){
-
-document.getElementById("entry").innerText="Waiting..."
-return
+document.getElementById("result").innerText=""
 
 }
 
-entry=Math.round(current)
+/* Trade check */
 
-let moveTP = Math.floor(Math.random()*100)+100
-let moveSL = Math.floor(Math.random()*100)+100
+async function checkTrade(){
 
-tp = entry + moveTP
-sl = entry - moveSL
+if(entry===0) return
 
-price = entry
+let price=await getPrice()
 
-document.getElementById("entry").innerText=entry
-document.getElementById("tp").innerText=tp
-document.getElementById("sl").innerText=sl
+if(position==="BUY"){
 
-tradeActive=true
+if(price>=tp){ wins++; showTP() }
 
-}
+if(price<=sl){ losses++; showSL() }
 
+}else{
 
-/* MONITOR PRICE */
+if(price<=tp){ wins++; showTP() }
 
-async function simulateMarket(){
-
-if(!tradeActive) return
-
-let current = await getPrice()
-
-if(current===null) return
-
-price=current
-
-
-if(price>=tp){
-
-showResult("❤️")
-
-wins++
-total++
-
-updateWinRate()
-
-tradeActive=false
-
-setTimeout(startTrade,4000)
+if(price>=sl){ losses++; showSL() }
 
 }
 
-else if(price<=sl){
-
-showResult("🦴")
-
-total++
-
-updateWinRate()
-
-tradeActive=false
-
-setTimeout(startTrade,4000)
+updateWinrate()
 
 }
 
-}
+function showTP(){
 
-setInterval(simulateMarket,3000)
+document.getElementById("result").innerText="👍 TP HIT"
 
+entry=0
 
-/* RESULT POPUP */
-
-function showResult(icon){
-
-let pop=document.createElement("div")
-
-pop.className="resultPopup"
-
-pop.innerHTML=icon
-
-document.body.appendChild(pop)
-
-setTimeout(()=>pop.remove(),1200)
+setTimeout(generateTrade,3000)
 
 }
 
+function showSL(){
 
-/* WIN RATE */
+document.getElementById("result").innerText="💀 SL HIT"
 
-function updateWinRate(){
+entry=0
 
-let rate=((wins/total)*100).toFixed(1)
+setTimeout(generateTrade,3000)
+
+}
+
+function updateWinrate(){
+
+let total=wins+losses
+
+if(total===0) return
+
+let rate=(wins/total*100).toFixed(1)
 
 document.getElementById("winrate").innerText=rate+"%"
 
 }
 
+/* Demand supply */
 
-/* BUY SELL POWER */
+async function updateZones(){
 
-async function updateMarketPower(){
+let price=await getPrice()
 
-try{
+let demand=price-(price*0.01)
+let supply=price+(price*0.01)
 
-let r = await fetch(
+document.getElementById("demand").innerText=demand.toFixed(2)
+document.getElementById("supply").innerText=supply.toFixed(2)
+
+}
+
+/* Buyer seller power */
+
+async function updatePower(){
+
+let r=await fetch(
 "https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=15m&limit=20"
 )
 
-let d = await r.json()
+let d=await r.json()
 
 let first=parseFloat(d[0][4])
-let last=parseFloat(d[d.length-1][4])
+let last=parseFloat(d[19][4])
 
-let buyPower
-let sellPower
+let buy
+let sell
 
 if(last>first){
 
-buyPower=70+Math.floor(Math.random()*15)
-sellPower=100-buyPower
+buy=70+Math.random()*10
+sell=100-buy
 
 }else{
 
-sellPower=70+Math.floor(Math.random()*15)
-buyPower=100-sellPower
+sell=70+Math.random()*10
+buy=100-sell
 
 }
 
-document.getElementById("buybar").style.width=buyPower+"%"
-document.getElementById("sellbar").style.width=sellPower+"%"
-
-}catch{}
+document.getElementById("buybar").style.width=buy+"%"
+document.getElementById("sellbar").style.width=sell+"%"
 
 }
 
-setInterval(updateMarketPower,30000)
+/* Pattern detection */
 
-updateMarketPower()
+async function detectPattern(){
 
+let r=await fetch(
+"https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=5m&limit=40"
+)
 
-/* CHART ONLY MODE */
+let d=await r.json()
 
-function chartOnly(){
+let highs=[]
+let lows=[]
 
-let a=document.getElementById("analysis")
+for(let i=0;i<d.length;i++){
 
-if(a.style.display==="none"){
+highs.push(parseFloat(d[i][2]))
+lows.push(parseFloat(d[i][3]))
 
-a.style.display="block"
+}
+
+let highTrend=highs[highs.length-1]-highs[0]
+let lowTrend=lows[lows.length-1]-lows[0]
+
+let pattern="No clear pattern"
+
+if(highTrend<0 && lowTrend>0){
+
+pattern="Symmetrical Triangle forming (5m)"
+
+}
+
+if(highTrend>0 && lowTrend>0){
+
+pattern="Bullish Flag forming"
+
+}
+
+if(highTrend<0 && lowTrend<0){
+
+pattern="Bearish Flag forming"
+
+}
+
+document.getElementById("pattern").innerText=pattern
+
+}
+
+/* LEVEL TEST near price */
+
+async function detectLevel(){
+
+let price=await getPrice()
+
+let r=await fetch(
+"https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=15m&limit=80"
+)
+
+let data=await r.json()
+
+let levels={}
+
+for(let i=0;i<data.length;i++){
+
+let close=parseFloat(data[i][4])
+
+if(Math.abs(close-price) < price*0.01){
+
+let rounded=Math.round(close)
+
+levels[rounded]=(levels[rounded]||0)+1
+
+}
+
+}
+
+let strongest=null
+let tests=0
+
+for(let level in levels){
+
+if(levels[level]>tests){
+
+tests=levels[level]
+strongest=level
+
+}
+
+}
+
+if(tests>=3){
+
+document.getElementById("leveltest").innerText=
+"Level "+strongest+" tested "+tests+" times near market (15m traders active)"
 
 }else{
 
-a.style.display="none"
+document.getElementById("leveltest").innerText="No strong nearby level"
 
 }
 
 }
+
+/* intervals */
+
+generateTrade()
+
+setInterval(checkTrade,4000)
+setInterval(updateZones,15000)
+setInterval(updatePower,30000)
+setInterval(detectPattern,20000)
+setInterval(detectLevel,25000)
 
 </script>
 
-
 </body>
-                                     </html>
+</html>

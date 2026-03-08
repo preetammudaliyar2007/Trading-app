@@ -24,25 +24,23 @@ height:60px;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:22px;
+font-size:20px;
 background:#08142a;
 }
 
-/* CHART AREA */
+/* CHART */
 
 .chartBox{
 width:100%;
-height:60vh;
+height:65vh;
 }
-
-/* TRADINGVIEW CONTAINER */
 
 #chart{
 width:100%;
 height:100%;
 }
 
-/* INFO PANELS */
+/* INFO SECTION */
 
 .info{
 padding:15px;
@@ -83,22 +81,40 @@ color:#ff3b3b;
 font-size:20px;
 }
 
+/* LANDSCAPE MODE */
+
+@media (orientation: landscape){
+
+header{
+display:none;
+}
+
+.chartBox{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100vh;
+z-index:1000;
+}
+
+.info{
+display:none;
+}
+
+}
+
 </style>
+
 </head>
 
 <body>
 
 <header>AI Crypto Trading Dashboard</header>
 
-<!-- LARGE CHART -->
-
 <div class="chartBox">
-
 <div id="chart"></div>
-
 </div>
-
-<!-- INFO PANELS -->
 
 <div class="info">
 
@@ -113,7 +129,7 @@ font-size:20px;
 </div>
 
 <div class="box">
-<h3>💪Buyer / Seller Power🦾</h3>
+<h3>Buyer / Seller Power</h3>
 
 <div class="power">
 <div id="buy" class="buy"></div>
@@ -146,15 +162,17 @@ font-size:20px;
 
 <script>
 
-/* LOAD LARGE CANDLESTICK CHART */
+/* LOAD TRADINGVIEW CANDLESTICK CHART */
+
+function loadChart(){
+
+document.getElementById("chart").innerHTML="";
 
 new TradingView.widget({
 
 container_id:"chart",
 
-width:"100%",
-
-height:"100%",
+autosize:true,
 
 symbol:"BINANCE:BTCUSDT",
 
@@ -171,6 +189,18 @@ toolbar_bg:"#0b1d3a",
 enable_publishing:false,
 
 hide_side_toolbar:false
+
+})
+
+}
+
+loadChart()
+
+/* RELOAD CHART WHEN SCREEN ROTATES */
+
+window.addEventListener("orientationchange",function(){
+
+setTimeout(loadChart,500)
 
 })
 
@@ -222,19 +252,11 @@ list[Math.floor(Math.random()*list.length)]
 
 }
 
-function analysis(price){
+function analysis(){
 
-let text="Market moving sideways."
-
-if(Math.random()>0.5){
-
-text="Bullish momentum forming. Buyers defending demand zone."
-
-}else{
-
-text="Bearish pressure visible. Sellers active near supply."
-
-}
+let text=Math.random()>0.5
+? "Buyers controlling structure."
+: "Sellers dominating near resistance."
 
 document.getElementById("analysis").innerText=text
 
@@ -273,7 +295,6 @@ direction+
 "<br>SL: "+sl.toFixed(2)
 
 supportResistance(price)
-analysis(price)
 
 }
 

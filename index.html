@@ -19,30 +19,33 @@ background:#081b33;
 color:white;
 height:100vh;
 overflow:hidden;
+display:flex;
+flex-direction:column;
 }
 
 /* HEADER */
 
 header{
-height:7vh;
+height:6vh;
 background:#051426;
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:10px;
+padding:8px 12px;
+font-size:14px;
 }
 
-/* CHART */
+/* CHART AREA */
 
 #chart{
+width:100vw;
 height:60vh;
-width:100%;
 }
 
-/* PANEL AREA */
+/* PANELS */
 
 .panel{
-height:33vh;
+height:34vh;
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:8px;
@@ -53,13 +56,13 @@ padding:8px;
 background:#061a31;
 padding:8px;
 border-radius:6px;
-font-size:14px;
+font-size:13px;
 }
 
 h3{
 margin:3px 0;
-color:#00ff9c;
 font-size:14px;
+color:#00ff9c;
 }
 
 /* BUY SELL BAR */
@@ -68,7 +71,9 @@ font-size:14px;
 display:flex;
 height:14px;
 background:#222;
-margin-top:4px;
+margin-top:5px;
+border-radius:3px;
+overflow:hidden;
 }
 
 #buybar{
@@ -82,9 +87,9 @@ width:50%;
 }
 
 .result{
-font-size:18px;
 text-align:center;
-margin-top:5px;
+font-size:18px;
+margin-top:4px;
 }
 
 /* FOOTER */
@@ -94,8 +99,8 @@ position:absolute;
 bottom:2px;
 width:100%;
 text-align:center;
-font-size:11px;
-opacity:0.7;
+font-size:10px;
+opacity:0.6;
 }
 
 </style>
@@ -129,9 +134,9 @@ opacity:0.7;
 
 <h3>AI Trade</h3>
 
-Entry: <span id="entry"></span><br>
-TP: <span id="tp"></span><br>
-SL: <span id="sl"></span>
+Entry: <span id="entry">-</span><br>
+TP: <span id="tp">-</span><br>
+SL: <span id="sl">-</span>
 
 <div class="result" id="result"></div>
 
@@ -161,7 +166,7 @@ Supply: <span id="supply"></span>
 
 <h3>Pattern</h3>
 
-<div id="pattern"></div>
+<div id="pattern">Scanning...</div>
 
 </div>
 
@@ -182,9 +187,7 @@ Win Rate: <span id="winrate">0%</span>
 </div>
 
 <footer>
-
 Powered by Preetam Mudaliyar | Sourced by ChatGPT
-
 </footer>
 
 <script>
@@ -198,7 +201,7 @@ let position=""
 let wins=0
 let losses=0
 
-/* CHART */
+/* LOAD CHART */
 
 function loadChart(){
 
@@ -207,13 +210,30 @@ document.getElementById("chart").innerHTML=""
 new TradingView.widget({
 
 container_id:"chart",
+
+width:"100%",
+
+height:"100%",
+
 symbol:"BINANCE:"+symbol,
+
 interval:"5",
+
 theme:"dark",
+
 style:"1",
+
+locale:"en",
+
 toolbar_bg:"#081b33",
+
+enable_publishing:false,
+
 hide_side_toolbar:false,
-allow_symbol_change:false
+
+allow_symbol_change:false,
+
+save_image:false
 
 })
 
@@ -221,7 +241,7 @@ allow_symbol_change:false
 
 loadChart()
 
-/* COIN CHANGE */
+/* COIN SELECT */
 
 document.getElementById("coinSelect").onchange=function(){
 
@@ -230,7 +250,7 @@ loadChart()
 
 }
 
-/* PRICE */
+/* GET PRICE */
 
 async function getPrice(){
 
@@ -244,7 +264,7 @@ return parseFloat(d.price)
 
 }
 
-/* AI TRADE */
+/* GENERATE AI TRADE */
 
 async function generateTrade(){
 
@@ -270,15 +290,13 @@ sl=price+move
 
 position=dir
 
-entry=price
-
 document.getElementById("entry").innerText=entry.toFixed(2)
 document.getElementById("tp").innerText=tp.toFixed(2)
 document.getElementById("sl").innerText=sl.toFixed(2)
 
 }
 
-/* TRADE CHECK */
+/* CHECK TRADE */
 
 async function checkTrade(){
 
@@ -326,18 +344,20 @@ updateWinrate()
 
 function showTP(){
 
-document.getElementById("result").innerText="👍 TP"
+document.getElementById("result").innerText="👍 TP HIT"
 
 entry=0
+
 setTimeout(generateTrade,4000)
 
 }
 
 function showSL(){
 
-document.getElementById("result").innerText="💀 SL"
+document.getElementById("result").innerText="💀 SL HIT"
 
 entry=0
+
 setTimeout(generateTrade,4000)
 
 }
@@ -367,7 +387,7 @@ document.getElementById("supply").innerText=(price*1.01).toFixed(2)
 
 /* BUY SELL POWER */
 
-async function updatePower(){
+function updatePower(){
 
 let buy=60+Math.random()*20
 let sell=100-buy
@@ -381,14 +401,19 @@ document.getElementById("sellbar").style.width=sell+"%"
 
 function detectPattern(){
 
-let patterns=["Triangle forming","Bullish flag","Bearish flag","No clear pattern"]
+let patterns=[
+"Triangle forming (5m)",
+"Bullish flag",
+"Bearish flag",
+"No clear pattern"
+]
 
 document.getElementById("pattern").innerText=
 patterns[Math.floor(Math.random()*patterns.length)]
 
 }
 
-/* LEVEL TEST */
+/* LEVEL NEAR PRICE */
 
 async function detectLevel(){
 

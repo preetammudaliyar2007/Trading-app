@@ -4,7 +4,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>AI Trading Dashboard</title>
+<title>AI Crypto Trading Dashboard</title>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
@@ -17,8 +17,6 @@ color:white;
 font-family:Arial;
 }
 
-/* HEADER */
-
 header{
 height:60px;
 display:flex;
@@ -27,8 +25,6 @@ justify-content:center;
 font-size:20px;
 background:#08142a;
 }
-
-/* CHART */
 
 .chartBox{
 width:100%;
@@ -39,8 +35,6 @@ height:65vh;
 width:100%;
 height:100%;
 }
-
-/* INFO SECTION */
 
 .info{
 padding:15px;
@@ -81,13 +75,9 @@ color:#ff3b3b;
 font-size:20px;
 }
 
-/* LANDSCAPE MODE */
-
 @media (orientation: landscape){
 
-header{
-display:none;
-}
+header{display:none;}
 
 .chartBox{
 position:fixed;
@@ -98,14 +88,11 @@ height:100vh;
 z-index:1000;
 }
 
-.info{
-display:none;
-}
+.info{display:none;}
 
 }
 
 </style>
-
 </head>
 
 <body>
@@ -130,22 +117,10 @@ display:none;
 
 <div class="box">
 <h3>Buyer / Seller Power</h3>
-
 <div class="power">
 <div id="buy" class="buy"></div>
 <div id="sell" class="sell"></div>
 </div>
-
-</div>
-
-<div class="box">
-<h3>Support / Resistance</h3>
-<div id="levels"></div>
-</div>
-
-<div class="box">
-<h3>Pattern</h3>
-<div id="pattern"></div>
 </div>
 
 <div class="box">
@@ -162,11 +137,11 @@ display:none;
 
 <script>
 
-/* LOAD TRADINGVIEW CANDLESTICK CHART */
+/* TRADINGVIEW CHART */
 
 function loadChart(){
 
-document.getElementById("chart").innerHTML="";
+document.getElementById("chart").innerHTML=""
 
 new TradingView.widget({
 
@@ -186,9 +161,7 @@ locale:"en",
 
 toolbar_bg:"#0b1d3a",
 
-enable_publishing:false,
-
-hide_side_toolbar:false
+enable_publishing:false
 
 })
 
@@ -196,13 +169,11 @@ hide_side_toolbar:false
 
 loadChart()
 
-/* RELOAD CHART WHEN SCREEN ROTATES */
-
 window.addEventListener("orientationchange",function(){
-
 setTimeout(loadChart,500)
-
 })
+
+/* AI TRADE SYSTEM */
 
 let wins=0
 let losses=0
@@ -210,7 +181,9 @@ let trade=null
 
 async function getPrice(){
 
-let r=await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")
+let r=await fetch(
+"https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
+)
 
 let d=await r.json()
 
@@ -218,59 +191,171 @@ return parseFloat(d.price)
 
 }
 
+/* BUYER SELLER POWER */
+
 function buyerSeller(){
 
-let buyPower=65
-let sellPower=35
+let buyPower=60+Math.random()*20
+let sellPower=100-buyPower
 
 document.getElementById("buy").style.width=buyPower+"%"
 document.getElementById("sell").style.width=sellPower+"%"
 
 }
 
-function supportResistance(price){
+/* PRICE ACTION ANALYSIS */
 
-let support=(price-150).toFixed(2)
-let resistance=(price+150).toFixed(2)
+async function analysis(){
 
-document.getElementById("levels").innerText =
-"Support: "+support+" | Resistance: "+resistance
+let r=await fetch(
+"https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=5m&limit=40"
+)
+
+let data=await r.json()
+
+let highs=data.map(c=>parseFloat(c[2]))
+let lows=data.map(c=>parseFloat(c[3]))
+let closes=data.map(c=>parseFloat(c[4]))
+
+let last=closes[closes.length-1]
+let prev=closes[closes.length-2]
+
+let text=""
+
+/* TREND */
+
+if(last>prev){
+
+text+="Bullish short-term momentum detected. "
+
+}else{
+
+text+="Bearish pressure visible in recent candles. "
 
 }
 
-function pattern(){
+/* HIGHER HIGH / LOWER LOW */
 
-let list=[
-"Triangle forming",
-"Bullish flag",
-"Bearish flag",
-"Range market"
-]
+let hh=highs[highs.length-1]>highs[highs.length-2]
+let ll=lows[lows.length-1]<lows[lows.length-2]
 
-document.getElementById("pattern").innerText =
-list[Math.floor(Math.random()*list.length)]
+if(hh){
+
+text+="Higher High detected. Trend continuation possible. "
 
 }
 
-function analysis(){
+if(ll){
 
-let text=Math.random()>0.5
-? "Buyers controlling structure."
-: "Sellers dominating near resistance."
+text+="Lower Low detected. Downtrend strengthening. "
+
+}
+
+/* BREAK OF STRUCTURE */
+
+let highest=Math.max(...highs.slice(0,highs.length-5))
+let lowest=Math.min(...lows.slice(0,lows.length-5))
+
+if(last>highest){
+
+text+="Break of Structure above resistance. "
+
+}
+
+if(last<lowest){
+
+text+="Break of Structure below support. "
+
+}
+
+/* LEVEL TESTS */
+
+let resistanceTests=highs.filter(h=>Math.abs(h-highest)<10).length
+let supportTests=lows.filter(l=>Math.abs(l-lowest)<10).length
+
+if(resistanceTests>=3){
+
+text+="Resistance tested multiple times. Breakout likely. "
+
+}
+
+if(supportTests>=3){
+
+text+="Support defended multiple times by buyers. "
+
+}
+
+/* LIQUIDITY SWEEP */
+
+let sweepHigh=
+highs[highs.length-1]>highs[highs.length-2] &&
+closes[closes.length-1]<highs[highs.length-2]
+
+let sweepLow=
+lows[lows.length-1]<lows[lows.length-2] &&
+closes[closes.length-1]>lows[lows.length-2]
+
+if(sweepHigh){
+
+text+="Liquidity sweep above highs detected. Possible reversal. "
+
+}
+
+if(sweepLow){
+
+text+="Liquidity sweep below lows detected. Buyers absorbing liquidity. "
+
+}
+
+/* TREND STRENGTH */
+
+let avg=closes.reduce((a,b)=>a+b)/closes.length
+
+if(last>avg){
+
+text+="Trend strength bullish."
+
+}else{
+
+text+="Trend strength bearish."
+
+}
 
 document.getElementById("analysis").innerText=text
 
 }
 
+/* TRADER RECOMMENDATION */
+
 function recommendation(){
 
-let text=Math.random()>0.5
-? "Recommended BUY — momentum building."
-: "Recommended SELL — resistance rejection possible."
+let a=document.getElementById("analysis").innerText
+
+let text=""
+
+if(a.includes("bullish")){
+
+text="Trader bias: BUY setups preferred. Look for pullbacks to support."
+
+}
+
+else if(a.includes("bearish")){
+
+text="Trader bias: SELL setups preferred near resistance."
+
+}
+
+else{
+
+text="No strong directional bias. Wait for confirmation."
+
+}
 
 document.getElementById("recommend").innerText=text
 
 }
+
+/* GENERATE TRADE */
 
 async function generateTrade(){
 
@@ -294,9 +379,9 @@ direction+
 "<br>TP: "+tp.toFixed(2)+
 "<br>SL: "+sl.toFixed(2)
 
-supportResistance(price)
-
 }
+
+/* CHECK TRADE RESULT */
 
 async function checkTrade(){
 
@@ -338,14 +423,14 @@ function finish(type){
 
 if(type==="tp"){
 
-document.getElementById("trade").innerHTML +=
+document.getElementById("trade").innerHTML+=
 "<div class='tp'>TP DONE 👍</div>"
 
 }
 
 if(type==="sl"){
 
-document.getElementById("trade").innerHTML +=
+document.getElementById("trade").innerHTML+=
 "<div class='sl'>SL 🦴</div>"
 
 }
@@ -362,14 +447,19 @@ setTimeout(generateTrade,5000)
 
 }
 
-setInterval(buyerSeller,8000)
-setInterval(pattern,12000)
-setInterval(recommendation,15000)
+/* INTERVALS */
 
-setInterval(generateTrade,10000)
+setInterval(buyerSeller,8000)
+
+setInterval(analysis,15000)
+
+setInterval(recommendation,16000)
+
+setInterval(generateTrade,12000)
+
 setInterval(checkTrade,4000)
 
 </script>
 
 </body>
-</html>
+  </html>

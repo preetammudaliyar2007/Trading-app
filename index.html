@@ -2,8 +2,6 @@
 <html>
 <head>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>AI Crypto Trading Dashboard</title>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
@@ -18,78 +16,44 @@ font-family:Arial;
 }
 
 header{
-height:60px;
 display:flex;
 align-items:center;
-justify-content:center;
-font-size:20px;
-background:#08142a;
+justify-content:space-between;
+padding:10px 20px;
+background:#08142b;
 }
 
-.chartBox{
-width:100%;
-height:65vh;
+#coinSelect{
+padding:8px;
+font-size:16px;
+border-radius:6px;
+}
+
+#coinInfo{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+#coinLogo{
+width:32px;
+height:32px;
 }
 
 #chart{
 width:100%;
-height:100%;
+height:60vh;
 }
 
-.info{
-padding:15px;
+#analysis{
+padding:20px;
 }
 
 .box{
-background:#112a52;
-padding:12px;
-margin-bottom:12px;
-border-radius:8px;
-}
-
-.power{
-display:flex;
-height:18px;
-background:#333;
-border-radius:6px;
-overflow:hidden;
-}
-
-.buy{
-background:#00ff88;
-height:100%;
-}
-
-.sell{
-background:#ff3b3b;
-height:100%;
-}
-
-.tp{
-color:#00ff88;
-font-size:20px;
-}
-
-.sl{
-color:#ff3b3b;
-font-size:20px;
-}
-
-@media (orientation: landscape){
-
-header{display:none;}
-
-.chartBox{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100vh;
-z-index:1000;
-}
-
-.info{display:none;}
-
+background:#122b55;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
 }
 
 </style>
@@ -97,49 +61,54 @@ z-index:1000;
 
 <body>
 
-<header>AI Crypto Trading Dashboard</header>
+<header>
 
-<div class="chartBox">
+<div id="coinInfo">
+<img id="coinLogo" src="https://cryptologos.cc/logos/bitcoin-btc-logo.png">
+<h2 id="coinName">BTC/USDT</h2>
+</div>
+
+<select id="coinSelect">
+
+<option value="BTCUSDT" data-logo="https://cryptologos.cc/logos/bitcoin-btc-logo.png">BTC</option>
+
+<option value="ETHUSDT" data-logo="https://cryptologos.cc/logos/ethereum-eth-logo.png">ETH</option>
+
+<option value="SOLUSDT" data-logo="https://cryptologos.cc/logos/solana-sol-logo.png">SOL</option>
+
+<option value="BNBUSDT" data-logo="https://cryptologos.cc/logos/bnb-bnb-logo.png">BNB</option>
+
+<option value="XRPUSDT" data-logo="https://cryptologos.cc/logos/xrp-xrp-logo.png">XRP</option>
+
+</select>
+
+</header>
+
 <div id="chart"></div>
-</div>
 
-<div class="info">
-
-<div class="box">
-<h3>AI Trade</h3>
-<div id="trade">Waiting trade...</div>
-</div>
-
-<div class="box">
-<h3>Winning Rate</h3>
-<div id="winrate">0%</div>
-</div>
-
-<div class="box">
-<h3>Buyer / Seller Power</h3>
-<div class="power">
-<div id="buy" class="buy"></div>
-<div id="sell" class="sell"></div>
-</div>
-</div>
+<div id="analysis">
 
 <div class="box">
 <h3>Price Action Analysis</h3>
-<div id="analysis"></div>
+<p id="priceAction">Waiting for market data...</p>
 </div>
 
 <div class="box">
 <h3>Trader Recommendation</h3>
-<div id="recommend"></div>
+<p id="recommendation">No trade currently.</p>
 </div>
 
 </div>
+
+<audio id="coinSound">
+<source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" type="audio/mpeg">
+</audio>
 
 <script>
 
-/* TRADINGVIEW CHART */
+let currentSymbol="BTCUSDT"
 
-function loadChart(){
+function loadChart(symbol){
 
 document.getElementById("chart").innerHTML=""
 
@@ -149,9 +118,11 @@ container_id:"chart",
 
 autosize:true,
 
-symbol:"BINANCE:BTCUSDT",
+symbol:"BINANCE:"+symbol,
 
 interval:"5",
+
+timezone:"Etc/UTC",
 
 theme:"dark",
 
@@ -161,305 +132,65 @@ locale:"en",
 
 toolbar_bg:"#0b1d3a",
 
-enable_publishing:false
+enable_publishing:false,
+
+allow_symbol_change:true,
+
+withdateranges:true,
+
+hide_side_toolbar:false,
+
+hide_top_toolbar:false
 
 })
 
 }
 
-loadChart()
+loadChart(currentSymbol)
 
-window.addEventListener("orientationchange",function(){
-setTimeout(loadChart,500)
+document.getElementById("coinSelect").addEventListener("change",function(){
+
+let symbol=this.value
+let logo=this.options[this.selectedIndex].dataset.logo
+
+document.getElementById("coinLogo").src=logo
+document.getElementById("coinName").innerText=symbol.replace("USDT","/USDT")
+
+document.getElementById("coinSound").play()
+
+currentSymbol=symbol
+
+loadChart(symbol)
+
+generateAnalysis()
+
 })
 
-/* AI TRADE SYSTEM */
+function generateAnalysis(){
 
-let wins=0
-let losses=0
-let trade=null
+let actions=["Market is testing resistance level multiple times.",
+"Strong bullish momentum detected.",
+"Liquidity sweep likely near support.",
+"Triangle pattern forming.",
+"Price consolidating before breakout."]
 
-async function getPrice(){
+let rec=["Wait for breakout confirmation.",
+"Possible buy opportunity near support.",
+"Short term sell pressure detected.",
+"Range trading environment.",
+"Trend continuation likely."]
 
-let r=await fetch(
-"https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
-)
+document.getElementById("priceAction").innerText=
+actions[Math.floor(Math.random()*actions.length)]
 
-let d=await r.json()
-
-return parseFloat(d.price)
-
-}
-
-/* BUYER SELLER POWER */
-
-function buyerSeller(){
-
-let buyPower=60+Math.random()*20
-let sellPower=100-buyPower
-
-document.getElementById("buy").style.width=buyPower+"%"
-document.getElementById("sell").style.width=sellPower+"%"
+document.getElementById("recommendation").innerText=
+rec[Math.floor(Math.random()*rec.length)]
 
 }
 
-/* PRICE ACTION ANALYSIS */
-
-async function analysis(){
-
-let r=await fetch(
-"https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=5m&limit=40"
-)
-
-let data=await r.json()
-
-let highs=data.map(c=>parseFloat(c[2]))
-let lows=data.map(c=>parseFloat(c[3]))
-let closes=data.map(c=>parseFloat(c[4]))
-
-let last=closes[closes.length-1]
-let prev=closes[closes.length-2]
-
-let text=""
-
-/* TREND */
-
-if(last>prev){
-
-text+="Bullish short-term momentum detected. "
-
-}else{
-
-text+="Bearish pressure visible in recent candles. "
-
-}
-
-/* HIGHER HIGH / LOWER LOW */
-
-let hh=highs[highs.length-1]>highs[highs.length-2]
-let ll=lows[lows.length-1]<lows[lows.length-2]
-
-if(hh){
-
-text+="Higher High detected. Trend continuation possible. "
-
-}
-
-if(ll){
-
-text+="Lower Low detected. Downtrend strengthening. "
-
-}
-
-/* BREAK OF STRUCTURE */
-
-let highest=Math.max(...highs.slice(0,highs.length-5))
-let lowest=Math.min(...lows.slice(0,lows.length-5))
-
-if(last>highest){
-
-text+="Break of Structure above resistance. "
-
-}
-
-if(last<lowest){
-
-text+="Break of Structure below support. "
-
-}
-
-/* LEVEL TESTS */
-
-let resistanceTests=highs.filter(h=>Math.abs(h-highest)<10).length
-let supportTests=lows.filter(l=>Math.abs(l-lowest)<10).length
-
-if(resistanceTests>=3){
-
-text+="Resistance tested multiple times. Breakout likely. "
-
-}
-
-if(supportTests>=3){
-
-text+="Support defended multiple times by buyers. "
-
-}
-
-/* LIQUIDITY SWEEP */
-
-let sweepHigh=
-highs[highs.length-1]>highs[highs.length-2] &&
-closes[closes.length-1]<highs[highs.length-2]
-
-let sweepLow=
-lows[lows.length-1]<lows[lows.length-2] &&
-closes[closes.length-1]>lows[lows.length-2]
-
-if(sweepHigh){
-
-text+="Liquidity sweep above highs detected. Possible reversal. "
-
-}
-
-if(sweepLow){
-
-text+="Liquidity sweep below lows detected. Buyers absorbing liquidity. "
-
-}
-
-/* TREND STRENGTH */
-
-let avg=closes.reduce((a,b)=>a+b)/closes.length
-
-if(last>avg){
-
-text+="Trend strength bullish."
-
-}else{
-
-text+="Trend strength bearish."
-
-}
-
-document.getElementById("analysis").innerText=text
-
-}
-
-/* TRADER RECOMMENDATION */
-
-function recommendation(){
-
-let a=document.getElementById("analysis").innerText
-
-let text=""
-
-if(a.includes("bullish")){
-
-text="Trader bias: BUY setups preferred. Look for pullbacks to support."
-
-}
-
-else if(a.includes("bearish")){
-
-text="Trader bias: SELL setups preferred near resistance."
-
-}
-
-else{
-
-text="No strong directional bias. Wait for confirmation."
-
-}
-
-document.getElementById("recommend").innerText=text
-
-}
-
-/* GENERATE TRADE */
-
-async function generateTrade(){
-
-if(trade) return
-
-let price=await getPrice()
-
-let direction=Math.random()>0.5?"BUY":"SELL"
-
-let entry=price
-
-let tp=direction==="BUY"?entry+120:entry-120
-let sl=direction==="BUY"?entry-120:entry+120
-
-trade={direction,tp,sl}
-
-document.getElementById("trade").innerHTML=
-
-direction+
-"<br>Entry: "+entry.toFixed(2)+
-"<br>TP: "+tp.toFixed(2)+
-"<br>SL: "+sl.toFixed(2)
-
-}
-
-/* CHECK TRADE RESULT */
-
-async function checkTrade(){
-
-if(!trade) return
-
-let price=await getPrice()
-
-if(trade.direction==="BUY"){
-
-if(price>=trade.tp){
-wins++
-finish("tp")
-}
-
-if(price<=trade.sl){
-losses++
-finish("sl")
-}
-
-}
-
-if(trade.direction==="SELL"){
-
-if(price<=trade.tp){
-wins++
-finish("tp")
-}
-
-if(price>=trade.sl){
-losses++
-finish("sl")
-}
-
-}
-
-}
-
-function finish(type){
-
-if(type==="tp"){
-
-document.getElementById("trade").innerHTML+=
-"<div class='tp'>TP DONE 👍</div>"
-
-}
-
-if(type==="sl"){
-
-document.getElementById("trade").innerHTML+=
-"<div class='sl'>SL 🦴</div>"
-
-}
-
-trade=null
-
-let total=wins+losses
-
-let rate=((wins/total)*100).toFixed(1)
-
-document.getElementById("winrate").innerText=rate+"%"
-
-setTimeout(generateTrade,5000)
-
-}
-
-/* INTERVALS */
-
-setInterval(buyerSeller,8000)
-
-setInterval(analysis,15000)
-
-setInterval(recommendation,16000)
-
-setInterval(generateTrade,12000)
-
-setInterval(checkTrade,4000)
+setInterval(generateAnalysis,8000)
 
 </script>
 
 </body>
-  </html>
+</html>

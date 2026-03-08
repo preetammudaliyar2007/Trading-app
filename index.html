@@ -17,6 +17,8 @@ color:white;
 font-family:Arial;
 }
 
+/* HEADER */
+
 header{
 height:60px;
 display:flex;
@@ -26,25 +28,30 @@ font-size:22px;
 background:#08142a;
 }
 
-.container{
-display:flex;
-flex-wrap:wrap;
-}
+/* CHART AREA */
 
 .chartBox{
 width:100%;
 height:60vh;
 }
 
-.info{
+/* TRADINGVIEW CONTAINER */
+
+#chart{
 width:100%;
+height:100%;
+}
+
+/* INFO PANELS */
+
+.info{
 padding:15px;
 }
 
 .box{
 background:#112a52;
 padding:12px;
-margin-bottom:10px;
+margin-bottom:12px;
 border-radius:8px;
 }
 
@@ -83,11 +90,15 @@ font-size:20px;
 
 <header>AI Crypto Trading Dashboard</header>
 
-<div class="container">
+<!-- LARGE CHART -->
 
 <div class="chartBox">
+
 <div id="chart"></div>
+
 </div>
+
+<!-- INFO PANELS -->
 
 <div class="info">
 
@@ -102,11 +113,13 @@ font-size:20px;
 </div>
 
 <div class="box">
-<h3>Buyer / Seller Power</h3>
+<h3>💪Buyer / Seller Power🦾</h3>
+
 <div class="power">
 <div id="buy" class="buy"></div>
 <div id="sell" class="sell"></div>
 </div>
+
 </div>
 
 <div class="box">
@@ -131,39 +144,33 @@ font-size:20px;
 
 </div>
 
-</div>
-
 <script>
 
-/* CANDLESTICK CHART */
+/* LOAD LARGE CANDLESTICK CHART */
 
 new TradingView.widget({
 
-container_id: "chart",
+container_id:"chart",
 
-width: "100%",
+width:"100%",
 
-height: "100%",
+height:"100%",
 
-symbol: "BINANCE:BTCUSDT",
+symbol:"BINANCE:BTCUSDT",
 
-interval: "5",
+interval:"5",
 
-theme: "dark",
+theme:"dark",
 
-style: "1",
+style:"1",
 
-locale: "en",
+locale:"en",
 
-toolbar_bg: "#0b1d3a",
+toolbar_bg:"#0b1d3a",
 
-enable_publishing: false,
+enable_publishing:false,
 
-hide_top_toolbar: false,
-
-hide_legend: false,
-
-save_image: false
+hide_side_toolbar:false
 
 })
 
@@ -183,8 +190,8 @@ return parseFloat(d.price)
 
 function buyerSeller(){
 
-let buyPower=60+Math.random()*20
-let sellPower=100-buyPower
+let buyPower=65
+let sellPower=35
 
 document.getElementById("buy").style.width=buyPower+"%"
 document.getElementById("sell").style.width=sellPower+"%"
@@ -279,17 +286,13 @@ let price=await getPrice()
 if(trade.direction==="BUY"){
 
 if(price>=trade.tp){
-
 wins++
 finish("tp")
-
 }
 
 if(price<=trade.sl){
-
 losses++
 finish("sl")
-
 }
 
 }
@@ -297,17 +300,13 @@ finish("sl")
 if(trade.direction==="SELL"){
 
 if(price<=trade.tp){
-
 wins++
 finish("tp")
-
 }
 
 if(price>=trade.sl){
-
 losses++
 finish("sl")
-
 }
 
 }
@@ -352,4 +351,4 @@ setInterval(checkTrade,4000)
 </script>
 
 </body>
-  </html>
+</html>

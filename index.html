@@ -1,16 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-
+<meta charset="UTF-8">
 <title>Preetam Smart Crypto Terminal</title>
 
 <style>
 
 body{
 margin:0;
-background:#000;
-color:#fff;
 font-family:Arial;
+color:white;
+background-size:cover;
+background-position:center;
+background-attachment:fixed;
+}
+
+/* DARK OVERLAY */
+
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.85);
+z-index:-1;
 }
 
 /* HEADER */
@@ -18,23 +33,19 @@ font-family:Arial;
 .header{
 display:flex;
 justify-content:space-between;
+align-items:center;
 padding:12px;
 border-bottom:2px solid #39ff14;
+background:black;
 }
 
-.logo{
-color:#39ff14;
-font-size:20px;
-font-weight:bold;
-}
-
-/* INTRO SCREEN */
+/* INTRO */
 
 .intro{
 display:flex;
 flex-direction:column;
-justify-content:center;
 align-items:center;
+justify-content:center;
 height:100vh;
 text-align:center;
 }
@@ -42,15 +53,24 @@ text-align:center;
 .patterns{
 color:#39ff14;
 margin:20px;
+font-size:18px;
+}
+
+/* COIN GRID */
+
+.coin-grid{
+display:grid;
+grid-template-columns:repeat(3,150px);
+gap:15px;
+margin-top:20px;
 }
 
 .coin{
 border:2px solid #39ff14;
-background:black;
-color:#39ff14;
-padding:12px 20px;
-margin:6px;
+padding:12px;
 cursor:pointer;
+background:black;
+transition:0.3s;
 }
 
 .coin:hover{
@@ -58,14 +78,17 @@ background:#39ff14;
 color:black;
 }
 
-/* MAIN LAYOUT */
+.coin img{
+width:40px;
+height:40px;
+}
+
+/* WORKSPACE */
 
 .workspace{
 display:flex;
-height:80vh;
+height:75vh;
 }
-
-/* CHART */
 
 .chart{
 flex:2;
@@ -73,13 +96,13 @@ padding:10px;
 border-right:2px solid #39ff14;
 }
 
-/* ANALYSIS */
-
 .analysis{
 flex:1;
 padding:10px;
 background:#050505;
 }
+
+/* PANELS */
 
 .panel{
 border:1px solid #39ff14;
@@ -90,40 +113,16 @@ margin-bottom:10px;
 .panel-title{
 color:#39ff14;
 font-weight:bold;
-margin-bottom:6px;
+margin-bottom:5px;
 }
 
-.buy{color:#39ff14;}
-.sell{color:red;}
-
-/* MARKET BAR */
-
-.marketbar{
-display:flex;
-overflow-x:auto;
-border-top:2px solid #39ff14;
-padding:6px;
-}
-
-.marketcoin{
-margin-right:20px;
-color:#39ff14;
-}
-
-/* FOOTER */
-
-.footer{
-text-align:center;
-padding:8px;
-border-top:2px solid #39ff14;
-font-size:13px;
-}
+/* BUTTONS */
 
 button{
 background:black;
 border:1px solid #39ff14;
 color:#39ff14;
-padding:5px 8px;
+padding:6px 10px;
 margin:3px;
 cursor:pointer;
 }
@@ -133,13 +132,37 @@ background:#39ff14;
 color:black;
 }
 
-</style>
+/* FULL CHART */
 
+.fullchart .analysis{
+display:none;
+}
+
+.fullchart .chart{
+flex:1;
+border-right:none;
+}
+
+/* FOOTER */
+
+.footer{
+position:fixed;
+bottom:0;
+width:100%;
+text-align:center;
+background:black;
+border-top:2px solid #39ff14;
+color:#39ff14;
+padding:8px;
+font-weight:bold;
+}
+
+</style>
 </head>
 
 <body>
 
-<!-- INTRO -->
+<!-- INTRO SCREEN -->
 
 <div id="intro" class="intro">
 
@@ -158,12 +181,39 @@ Detected Market Patterns
 
 <h3>Select Coin</h3>
 
-<button class="coin" onclick="start('BTCUSDT')">Bitcoin</button>
-<button class="coin" onclick="start('ETHUSDT')">Ethereum</button>
-<button class="coin" onclick="start('SOLUSDT')">Solana</button>
-<button class="coin" onclick="start('BNBUSDT')">BNB</button>
-<button class="coin" onclick="start('XRPUSDT')">XRP</button>
-<button class="coin" onclick="start('DOGEUSDT')">Dogecoin</button>
+<div class="coin-grid">
+
+<div class="coin" onclick="start('BTCUSDT')">
+<img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png">
+<div>Bitcoin</div>
+</div>
+
+<div class="coin" onclick="start('ETHUSDT')">
+<img src="https://cryptologos.cc/logos/ethereum-eth-logo.png">
+<div>Ethereum</div>
+</div>
+
+<div class="coin" onclick="start('BNBUSDT')">
+<img src="https://cryptologos.cc/logos/bnb-bnb-logo.png">
+<div>BNB</div>
+</div>
+
+<div class="coin" onclick="start('SOLUSDT')">
+<img src="https://cryptologos.cc/logos/solana-sol-logo.png">
+<div>Solana</div>
+</div>
+
+<div class="coin" onclick="start('XRPUSDT')">
+<img src="https://cryptologos.cc/logos/xrp-xrp-logo.png">
+<div>XRP</div>
+</div>
+
+<div class="coin" onclick="start('DOGEUSDT')">
+<img src="https://cryptologos.cc/logos/dogecoin-doge-logo.png">
+<div>Dogecoin</div>
+</div>
+
+</div>
 
 </div>
 
@@ -173,13 +223,17 @@ Detected Market Patterns
 
 <div class="header">
 
-<div class="logo">Preetam Smart Terminal</div>
+<div style="color:#39ff14">
+Preetam Smart Terminal
+</div>
 
-<div id="coinname"></div>
+<div>
+<button onclick="toggleChart()">Landscape Chart</button>
+</div>
 
 </div>
 
-<div class="workspace">
+<div id="workspace" class="workspace">
 
 <!-- CHART -->
 
@@ -202,7 +256,7 @@ Timeframe
 
 <div class="panel">
 <div class="panel-title">Trend Signal</div>
-<span class="buy">Strong Buy</span>
+Strong Buy
 </div>
 
 <div class="panel">
@@ -220,49 +274,21 @@ $64,200 – $64,700
 $63,000 – $63,400
 </div>
 
-<div class="panel">
-<div class="panel-title">Whale Activity</div>
-<span class="buy">🐋 Whale Buying</span><br>
-<span class="sell">🐋 Whale Selling</span>
-</div>
-
-<div class="panel">
-<div class="panel-title">Market Phase</div>
-Accumulation
 </div>
 
 </div>
-
-</div>
-
-<!-- MARKET BAR -->
-
-<div class="marketbar">
-
-<div class="marketcoin">BTC</div>
-<div class="marketcoin">ETH</div>
-<div class="marketcoin">SOL</div>
-<div class="marketcoin">BNB</div>
-<div class="marketcoin">XRP</div>
-<div class="marketcoin">DOGE</div>
-<div class="marketcoin">ADA</div>
-<div class="marketcoin">AVAX</div>
 
 </div>
 
 <div class="footer">
-
-Powered by Preetam Mudaliyar  
-<br>
-Sourced by ChatGPT
-
-</div>
-
+⚡ Powered by Preetam Mudaliyar | Sourced by ChatGPT ⚡
 </div>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
+
+/* COIN */
 
 let coin="BTCUSDT";
 
@@ -273,11 +299,11 @@ coin=c;
 document.getElementById("intro").style.display="none";
 document.getElementById("terminal").style.display="block";
 
-document.getElementById("coinname").innerText=c;
-
 loadChart("15");
 
 }
+
+/* CHART */
 
 function loadChart(interval){
 
@@ -286,7 +312,7 @@ document.getElementById("chart").innerHTML="";
 new TradingView.widget({
 
 width:"100%",
-height:550,
+height:500,
 symbol:"BINANCE:"+coin,
 interval:interval,
 theme:"dark",
@@ -297,8 +323,36 @@ container_id:"chart"
 
 }
 
+/* FULL CHART MODE */
+
+function toggleChart(){
+
+document.getElementById("workspace").classList.toggle("fullchart");
+
+}
+
+/* ROTATING BACKGROUND */
+
+const backgrounds=[
+
+"https://images.unsplash.com/photo-1621761191319-c6fb62004040",
+"https://images.unsplash.com/photo-1639322537228-f710d846310a",
+"https://images.unsplash.com/photo-1642104704074-907c0698cbd9"
+
+];
+
+let i=0;
+
+setInterval(()=>{
+
+document.body.style.backgroundImage="url('"+backgrounds[i]+"')";
+i++;
+
+if(i>=backgrounds.length){i=0;}
+
+},7000);
+
 </script>
 
 </body>
-
-  </html>
+</html>

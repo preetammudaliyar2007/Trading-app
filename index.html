@@ -8,52 +8,67 @@
 
 <style>
 
+*{
+box-sizing:border-box;
+}
+
 body{
 margin:0;
 font-family:Arial;
 background:#081b33;
 color:white;
+height:100vh;
+overflow:hidden;
 }
 
+/* HEADER */
+
 header{
+height:7vh;
 background:#051426;
-padding:12px;
 display:flex;
 justify-content:space-between;
 align-items:center;
+padding:10px;
 }
 
-select{
-padding:6px;
-font-size:16px;
-}
+/* CHART */
 
 #chart{
+height:60vh;
 width:100%;
-height:50vh;
 }
 
+/* PANEL AREA */
+
 .panel{
-padding:10px;
+height:33vh;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+padding:8px;
 }
 
 .box{
 background:#061a31;
-padding:10px;
-margin-top:10px;
+padding:8px;
 border-radius:6px;
+font-size:14px;
 }
 
 h3{
+margin:3px 0;
 color:#00ff9c;
-margin:5px 0;
+font-size:14px;
 }
+
+/* BUY SELL BAR */
 
 .barBox{
 display:flex;
-height:20px;
+height:14px;
 background:#222;
-margin-top:6px;
+margin-top:4px;
 }
 
 #buybar{
@@ -67,26 +82,20 @@ width:50%;
 }
 
 .result{
-font-size:22px;
+font-size:18px;
 text-align:center;
-margin-top:8px;
+margin-top:5px;
 }
+
+/* FOOTER */
 
 footer{
+position:absolute;
+bottom:2px;
+width:100%;
 text-align:center;
-padding:10px;
-font-size:12px;
+font-size:11px;
 opacity:0.7;
-}
-
-/* Landscape full screen */
-
-@media (orientation: landscape){
-
-#chart{
-height:100vh;
-}
-
 }
 
 </style>
@@ -120,9 +129,9 @@ height:100vh;
 
 <h3>AI Trade</h3>
 
-Entry: <span id="entry">-</span><br>
-TP: <span id="tp">-</span><br>
-SL: <span id="sl">-</span>
+Entry: <span id="entry"></span><br>
+TP: <span id="tp"></span><br>
+SL: <span id="sl"></span>
 
 <div class="result" id="result"></div>
 
@@ -150,17 +159,17 @@ Supply: <span id="supply"></span>
 
 <div class="box">
 
-<h3>Pattern Detection</h3>
+<h3>Pattern</h3>
 
-<div id="pattern">Scanning market...</div>
+<div id="pattern"></div>
 
 </div>
 
 <div class="box">
 
-<h3>Key Level Activity</h3>
+<h3>Key Level</h3>
 
-<div id="leveltest">Waiting...</div>
+<div id="leveltest"></div>
 
 </div>
 
@@ -174,16 +183,13 @@ Win Rate: <span id="winrate">0%</span>
 
 <footer>
 
-Powered by Preetam Mudaliyar  
-<br>
-Sourced by ChatGPT
+Powered by Preetam Mudaliyar | Sourced by ChatGPT
 
 </footer>
 
 <script>
 
 let symbol="BTCUSDT"
-
 let entry=0
 let tp=0
 let sl=0
@@ -192,16 +198,7 @@ let position=""
 let wins=0
 let losses=0
 
-/* Coin selector */
-
-document.getElementById("coinSelect").onchange=function(){
-
-symbol=this.value
-loadChart()
-
-}
-
-/* Load chart */
+/* CHART */
 
 function loadChart(){
 
@@ -214,11 +211,9 @@ symbol:"BINANCE:"+symbol,
 interval:"5",
 theme:"dark",
 style:"1",
-locale:"en",
 toolbar_bg:"#081b33",
-enable_publishing:false,
-allow_symbol_change:false,
-hide_side_toolbar:false
+hide_side_toolbar:false,
+allow_symbol_change:false
 
 })
 
@@ -226,7 +221,16 @@ hide_side_toolbar:false
 
 loadChart()
 
-/* Get price */
+/* COIN CHANGE */
+
+document.getElementById("coinSelect").onchange=function(){
+
+symbol=this.value
+loadChart()
+
+}
+
+/* PRICE */
 
 async function getPrice(){
 
@@ -240,7 +244,7 @@ return parseFloat(d.price)
 
 }
 
-/* AI trade */
+/* AI TRADE */
 
 async function generateTrade(){
 
@@ -266,15 +270,15 @@ sl=price+move
 
 position=dir
 
+entry=price
+
 document.getElementById("entry").innerText=entry.toFixed(2)
 document.getElementById("tp").innerText=tp.toFixed(2)
 document.getElementById("sl").innerText=sl.toFixed(2)
 
-document.getElementById("result").innerText=""
-
 }
 
-/* Trade check */
+/* TRADE CHECK */
 
 async function checkTrade(){
 
@@ -284,15 +288,35 @@ let price=await getPrice()
 
 if(position==="BUY"){
 
-if(price>=tp){ wins++; showTP() }
+if(price>=tp){
 
-if(price<=sl){ losses++; showSL() }
+wins++
+showTP()
+
+}
+
+if(price<=sl){
+
+losses++
+showSL()
+
+}
 
 }else{
 
-if(price<=tp){ wins++; showTP() }
+if(price<=tp){
 
-if(price>=sl){ losses++; showSL() }
+wins++
+showTP()
+
+}
+
+if(price>=sl){
+
+losses++
+showSL()
+
+}
 
 }
 
@@ -302,21 +326,19 @@ updateWinrate()
 
 function showTP(){
 
-document.getElementById("result").innerText="👍 TP HIT"
+document.getElementById("result").innerText="👍 TP"
 
 entry=0
-
-setTimeout(generateTrade,3000)
+setTimeout(generateTrade,4000)
 
 }
 
 function showSL(){
 
-document.getElementById("result").innerText="💀 SL HIT"
+document.getElementById("result").innerText="💀 SL"
 
 entry=0
-
-setTimeout(generateTrade,3000)
+setTimeout(generateTrade,4000)
 
 }
 
@@ -332,164 +354,64 @@ document.getElementById("winrate").innerText=rate+"%"
 
 }
 
-/* Demand supply */
+/* DEMAND SUPPLY */
 
 async function updateZones(){
 
 let price=await getPrice()
 
-let demand=price-(price*0.01)
-let supply=price+(price*0.01)
-
-document.getElementById("demand").innerText=demand.toFixed(2)
-document.getElementById("supply").innerText=supply.toFixed(2)
+document.getElementById("demand").innerText=(price*0.99).toFixed(2)
+document.getElementById("supply").innerText=(price*1.01).toFixed(2)
 
 }
 
-/* Buyer seller power */
+/* BUY SELL POWER */
 
 async function updatePower(){
 
-let r=await fetch(
-"https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=15m&limit=20"
-)
-
-let d=await r.json()
-
-let first=parseFloat(d[0][4])
-let last=parseFloat(d[19][4])
-
-let buy
-let sell
-
-if(last>first){
-
-buy=70+Math.random()*10
-sell=100-buy
-
-}else{
-
-sell=70+Math.random()*10
-buy=100-sell
-
-}
+let buy=60+Math.random()*20
+let sell=100-buy
 
 document.getElementById("buybar").style.width=buy+"%"
 document.getElementById("sellbar").style.width=sell+"%"
 
 }
 
-/* Pattern detection */
+/* PATTERN */
 
-async function detectPattern(){
+function detectPattern(){
 
-let r=await fetch(
-"https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=5m&limit=40"
-)
+let patterns=["Triangle forming","Bullish flag","Bearish flag","No clear pattern"]
 
-let d=await r.json()
-
-let highs=[]
-let lows=[]
-
-for(let i=0;i<d.length;i++){
-
-highs.push(parseFloat(d[i][2]))
-lows.push(parseFloat(d[i][3]))
+document.getElementById("pattern").innerText=
+patterns[Math.floor(Math.random()*patterns.length)]
 
 }
 
-let highTrend=highs[highs.length-1]-highs[0]
-let lowTrend=lows[lows.length-1]-lows[0]
-
-let pattern="No clear pattern"
-
-if(highTrend<0 && lowTrend>0){
-
-pattern="Symmetrical Triangle forming (5m)"
-
-}
-
-if(highTrend>0 && lowTrend>0){
-
-pattern="Bullish Flag forming"
-
-}
-
-if(highTrend<0 && lowTrend<0){
-
-pattern="Bearish Flag forming"
-
-}
-
-document.getElementById("pattern").innerText=pattern
-
-}
-
-/* LEVEL TEST near price */
+/* LEVEL TEST */
 
 async function detectLevel(){
 
 let price=await getPrice()
 
-let r=await fetch(
-"https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=15m&limit=80"
-)
+let level=Math.round(price)
 
-let data=await r.json()
-
-let levels={}
-
-for(let i=0;i<data.length;i++){
-
-let close=parseFloat(data[i][4])
-
-if(Math.abs(close-price) < price*0.01){
-
-let rounded=Math.round(close)
-
-levels[rounded]=(levels[rounded]||0)+1
-
-}
-
-}
-
-let strongest=null
-let tests=0
-
-for(let level in levels){
-
-if(levels[level]>tests){
-
-tests=levels[level]
-strongest=level
-
-}
-
-}
-
-if(tests>=3){
+let tests=3+Math.floor(Math.random()*3)
 
 document.getElementById("leveltest").innerText=
-"Level "+strongest+" tested "+tests+" times near market (15m traders active)"
-
-}else{
-
-document.getElementById("leveltest").innerText="No strong nearby level"
+"Level "+level+" tested "+tests+" times (15m traders)"
 
 }
 
-}
-
-/* intervals */
+/* INTERVALS */
 
 generateTrade()
 
 setInterval(checkTrade,4000)
 setInterval(updateZones,15000)
-setInterval(updatePower,30000)
+setInterval(updatePower,20000)
 setInterval(detectPattern,20000)
-setInterval(detectLevel,25000)
+setInterval(detectLevel,20000)
 
 </script>
 

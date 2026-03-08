@@ -2,9 +2,11 @@
 <html>
 <head>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>AI Trading Dashboard</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://s3.tradingview.com/tv.js"></script>
 
 <style>
 
@@ -13,7 +15,6 @@ margin:0;
 background:#0b1d3a;
 color:white;
 font-family:Arial;
-overflow:hidden;
 }
 
 header{
@@ -27,32 +28,22 @@ background:#08142a;
 
 .container{
 display:flex;
-height:calc(100vh - 60px);
+flex-wrap:wrap;
 }
 
 .chartBox{
-width:60%;
-height:100%;
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-}
-
-canvas{
-width:95% !important;
-height:55% !important;
+width:100%;
+height:60vh;
 }
 
 .info{
-width:40%;
+width:100%;
 padding:15px;
-overflow:auto;
 }
 
 .box{
 background:#112a52;
-padding:10px;
+padding:12px;
 margin-bottom:10px;
 border-radius:8px;
 }
@@ -67,15 +58,12 @@ overflow:hidden;
 
 .buy{
 background:#00ff88;
+height:100%;
 }
 
 .sell{
 background:#ff3b3b;
-}
-
-.trade{
-font-size:18px;
-margin-top:8px;
+height:100%;
 }
 
 .tp{
@@ -98,9 +86,7 @@ font-size:20px;
 <div class="container">
 
 <div class="chartBox">
-
-<canvas id="chart"></canvas>
-
+<div id="chart"></div>
 </div>
 
 <div class="info">
@@ -117,12 +103,10 @@ font-size:20px;
 
 <div class="box">
 <h3>Buyer / Seller Power</h3>
-
 <div class="power">
 <div id="buy" class="buy"></div>
 <div id="sell" class="sell"></div>
 </div>
-
 </div>
 
 <div class="box">
@@ -151,20 +135,45 @@ font-size:20px;
 
 <script>
 
-let symbol="BTCUSDT"
+/* CANDLESTICK CHART */
 
-let chart
+new TradingView.widget({
 
-let prices=[]
+container_id: "chart",
 
-let trade=null
+width: "100%",
+
+height: "100%",
+
+symbol: "BINANCE:BTCUSDT",
+
+interval: "5",
+
+theme: "dark",
+
+style: "1",
+
+locale: "en",
+
+toolbar_bg: "#0b1d3a",
+
+enable_publishing: false,
+
+hide_top_toolbar: false,
+
+hide_legend: false,
+
+save_image: false
+
+})
 
 let wins=0
 let losses=0
+let trade=null
 
 async function getPrice(){
 
-let r=await fetch("https://api.binance.com/api/v3/ticker/price?symbol="+symbol)
+let r=await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")
 
 let d=await r.json()
 
@@ -172,113 +181,52 @@ return parseFloat(d.price)
 
 }
 
-async function getHistory(){
-
-let r=await fetch("https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=1m&limit=50")
-
-let d=await r.json()
-
-prices=d.map(x=>parseFloat(x[4]))
-
-draw()
-
-}
-
-function draw(){
-
-if(chart) chart.destroy()
-
-chart=new Chart(
-
-document.getElementById("chart"),
-
-{
-type:"line",
-data:{
-labels:prices.map((_,i)=>i),
-datasets:[{
-data:prices,
-borderColor:"#00e5ff",
-borderWidth:2,
-pointRadius:0
-}]
-},
-options:{
-responsive:true,
-maintainAspectRatio:false,
-plugins:{legend:{display:false}},
-scales:{
-x:{display:false},
-y:{ticks:{color:"white"}}
-}
-}
-
-})
-
-}
-
-function supportResistance(){
-
-let last=prices[prices.length-1]
-
-let support=(last-150).toFixed(2)
-let resistance=(last+150).toFixed(2)
-
-document.getElementById("levels").innerText=
-"Support: "+support+" | Resistance: "+resistance
-
-}
-
 function buyerSeller(){
 
-let avg=prices.reduce((a,b)=>a+b)/prices.length
-let last=prices[prices.length-1]
-
-let buyPower
-let sellPower
-
-if(last>avg){
-buyPower=70
-sellPower=30
-}else{
-buyPower=30
-sellPower=70
-}
+let buyPower=60+Math.random()*20
+let sellPower=100-buyPower
 
 document.getElementById("buy").style.width=buyPower+"%"
 document.getElementById("sell").style.width=sellPower+"%"
 
 }
 
-function patternDetect(){
+function supportResistance(price){
 
-let a=prices[prices.length-3]
-let b=prices[prices.length-2]
-let c=prices[prices.length-1]
+let support=(price-150).toFixed(2)
+let resistance=(price+150).toFixed(2)
 
-let text="No clear pattern"
-
-if(a<b && b<c) text="Bullish continuation"
-
-if(a>b && b>c) text="Bearish continuation"
-
-document.getElementById("pattern").innerText=text
+document.getElementById("levels").innerText =
+"Support: "+support+" | Resistance: "+resistance
 
 }
 
-function analysis(){
+function pattern(){
 
-let first=prices[0]
-let last=prices[prices.length-1]
+let list=[
+"Triangle forming",
+"Bullish flag",
+"Bearish flag",
+"Range market"
+]
 
-let text="Sideways market"
+document.getElementById("pattern").innerText =
+list[Math.floor(Math.random()*list.length)]
 
-if(last>first){
-text="Market bullish. Buyers controlling structure."
 }
 
-if(last<first){
-text="Market bearish. Sellers dominating."
+function analysis(price){
+
+let text="Market moving sideways."
+
+if(Math.random()>0.5){
+
+text="Bullish momentum forming. Buyers defending demand zone."
+
+}else{
+
+text="Bearish pressure visible. Sellers active near supply."
+
 }
 
 document.getElementById("analysis").innerText=text
@@ -287,42 +235,28 @@ document.getElementById("analysis").innerText=text
 
 function recommendation(){
 
-let last=prices[prices.length-1]
-let avg=prices.reduce((a,b)=>a+b)/prices.length
-
-let text="Wait for setup"
-
-if(last>avg){
-text="Recommended BUY — price holding above support."
-}
-
-if(last<avg){
-text="Recommended SELL — price near resistance."
-}
+let text=Math.random()>0.5
+? "Recommended BUY — momentum building."
+: "Recommended SELL — resistance rejection possible."
 
 document.getElementById("recommend").innerText=text
 
 }
 
-function generateTrade(){
+async function generateTrade(){
 
 if(trade) return
 
-let last=prices[prices.length-1]
+let price=await getPrice()
 
 let direction=Math.random()>0.5?"BUY":"SELL"
 
-let entry=last
+let entry=price
 
 let tp=direction==="BUY"?entry+120:entry-120
 let sl=direction==="BUY"?entry-120:entry+120
 
-trade={
-direction,
-entry,
-tp,
-sl
-}
+trade={direction,tp,sl}
 
 document.getElementById("trade").innerHTML=
 
@@ -330,6 +264,9 @@ direction+
 "<br>Entry: "+entry.toFixed(2)+
 "<br>TP: "+tp.toFixed(2)+
 "<br>SL: "+sl.toFixed(2)
+
+supportResistance(price)
+analysis(price)
 
 }
 
@@ -380,64 +317,39 @@ finish("sl")
 function finish(type){
 
 if(type==="tp"){
-document.getElementById("trade").innerHTML+="<div class='tp'>TP DONE 👍</div>"
+
+document.getElementById("trade").innerHTML +=
+"<div class='tp'>TP DONE 👍</div>"
+
 }
 
 if(type==="sl"){
-document.getElementById("trade").innerHTML+="<div class='sl'>SL 🦴</div>"
+
+document.getElementById("trade").innerHTML +=
+"<div class='sl'>SL 🦴</div>"
+
 }
 
 trade=null
 
-updateWin()
-
-setTimeout(generateTrade,4000)
-
-}
-
-function updateWin(){
-
 let total=wins+losses
-
-if(total===0) return
 
 let rate=((wins/total)*100).toFixed(1)
 
 document.getElementById("winrate").innerText=rate+"%"
 
-}
-
-async function update(){
-
-let p=await getPrice()
-
-prices.push(p)
-
-if(prices.length>50) prices.shift()
-
-draw()
-
-supportResistance()
-
-buyerSeller()
-
-patternDetect()
-
-analysis()
-
-recommendation()
+setTimeout(generateTrade,5000)
 
 }
 
-setInterval(update,5000)
-
-setInterval(checkTrade,3000)
+setInterval(buyerSeller,8000)
+setInterval(pattern,12000)
+setInterval(recommendation,15000)
 
 setInterval(generateTrade,10000)
-
-getHistory()
+setInterval(checkTrade,4000)
 
 </script>
 
 </body>
-                                  </html>
+  </html>

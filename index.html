@@ -1,71 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>AI Crypto Analyzer</title>
-<script src="https://s3.tradingview.com/tv.js"></script>
+
+<title>AI Trading Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
 body{
 margin:0;
-background:#081b33;
-font-family:Arial;
+background:#0b1d3a;
 color:white;
+font-family:Arial;
 overflow:hidden;
 }
 
 header{
-height:40px;
-background:#051426;
+height:60px;
 display:flex;
 align-items:center;
-justify-content:space-between;
-padding:5px 10px;
+justify-content:center;
+font-size:22px;
+background:#08142a;
 }
 
-#chart{
-width:100%;
+.container{
+display:flex;
+height:calc(100vh - 60px);
 }
 
-/* PANELS */
+.chartBox{
+width:60%;
+height:100%;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
 
-.panel{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:6px;
-padding:6px;
+canvas{
+width:95% !important;
+height:55% !important;
+}
+
+.info{
+width:40%;
+padding:15px;
+overflow:auto;
 }
 
 .box{
-background:#061a31;
-padding:6px;
-border-radius:5px;
-font-size:12px;
+background:#112a52;
+padding:10px;
+margin-bottom:10px;
+border-radius:8px;
 }
 
-h3{
-margin:3px 0;
-font-size:13px;
-color:#00ff9c;
-}
-
-.barBox{
+.power{
 display:flex;
-height:12px;
-background:#222;
-border-radius:3px;
+height:18px;
+background:#333;
+border-radius:6px;
 overflow:hidden;
 }
 
-#buybar{
-background:#00ff9c;
-width:50%;
+.buy{
+background:#00ff88;
 }
 
-#sellbar{
-background:#ff4040;
-width:50%;
+.sell{
+background:#ff3b3b;
+}
+
+.trade{
+font-size:18px;
+margin-top:8px;
+}
+
+.tp{
+color:#00ff88;
+font-size:20px;
+}
+
+.sl{
+color:#ff3b3b;
+font-size:20px;
 }
 
 </style>
@@ -73,46 +93,58 @@ width:50%;
 
 <body>
 
-<header>
+<header>AI Crypto Trading Dashboard</header>
 
-<select id="coinSelect">
-<option value="BTCUSDT">BTC</option>
-<option value="ETHUSDT">ETH</option>
-<option value="SOLUSDT">SOL</option>
-</select>
+<div class="container">
 
-<div>AI Crypto Analyzer</div>
+<div class="chartBox">
 
-</header>
+<canvas id="chart"></canvas>
 
-<div id="chart"></div>
+</div>
 
-<div class="panel">
+<div class="info">
 
 <div class="box">
 <h3>AI Trade</h3>
-Entry: <span id="entry"></span><br>
-TP: <span id="tp"></span><br>
-SL: <span id="sl"></span>
+<div id="trade">Waiting trade...</div>
 </div>
 
 <div class="box">
-<h3>Demand / Supply</h3>
-Demand: <span id="demand"></span><br>
-Supply: <span id="supply"></span>
+<h3>Winning Rate</h3>
+<div id="winrate">0%</div>
 </div>
 
 <div class="box">
 <h3>Buyer / Seller Power</h3>
-<div class="barBox">
-<div id="buybar"></div>
-<div id="sellbar"></div>
+
+<div class="power">
+<div id="buy" class="buy"></div>
+<div id="sell" class="sell"></div>
 </div>
+
+</div>
+
+<div class="box">
+<h3>Support / Resistance</h3>
+<div id="levels"></div>
 </div>
 
 <div class="box">
 <h3>Pattern</h3>
-<div id="pattern">Scanning...</div>
+<div id="pattern"></div>
+</div>
+
+<div class="box">
+<h3>Price Action Analysis</h3>
+<div id="analysis"></div>
+</div>
+
+<div class="box">
+<h3>Trader Recommendation</h3>
+<div id="recommend"></div>
+</div>
+
 </div>
 
 </div>
@@ -121,105 +153,291 @@ Supply: <span id="supply"></span>
 
 let symbol="BTCUSDT"
 
-/* FORCE 60% CHART HEIGHT */
+let chart
 
-function setChartHeight(){
+let prices=[]
 
-let screenHeight=window.innerHeight
-let chartHeight=screenHeight*0.60
+let trade=null
 
-document.getElementById("chart").style.height=
-chartHeight+"px"
+let wins=0
+let losses=0
+
+async function getPrice(){
+
+let r=await fetch("https://api.binance.com/api/v3/ticker/price?symbol="+symbol)
+
+let d=await r.json()
+
+return parseFloat(d.price)
 
 }
 
-/* LOAD CHART */
+async function getHistory(){
 
-function loadChart(){
+let r=await fetch("https://api.binance.com/api/v3/klines?symbol="+symbol+"&interval=1m&limit=50")
 
-setChartHeight()
+let d=await r.json()
 
-document.getElementById("chart").innerHTML=""
+prices=d.map(x=>parseFloat(x[4]))
 
-new TradingView.widget({
+draw()
 
-container_id:"chart",
+}
 
-width:"100%",
+function draw(){
 
-height:"100%",
+if(chart) chart.destroy()
 
-symbol:"BINANCE:"+symbol,
+chart=new Chart(
 
-interval:"5",
+document.getElementById("chart"),
 
-theme:"dark",
-
-style:"1",
-
-toolbar_bg:"#081b33",
-
-hide_side_toolbar:false,
-
-allow_symbol_change:false
+{
+type:"line",
+data:{
+labels:prices.map((_,i)=>i),
+datasets:[{
+data:prices,
+borderColor:"#00e5ff",
+borderWidth:2,
+pointRadius:0
+}]
+},
+options:{
+responsive:true,
+maintainAspectRatio:false,
+plugins:{legend:{display:false}},
+scales:{
+x:{display:false},
+y:{ticks:{color:"white"}}
+}
+}
 
 })
 
 }
 
-loadChart()
+function supportResistance(){
 
-/* COIN CHANGE */
+let last=prices[prices.length-1]
 
-document.getElementById("coinSelect").onchange=function(){
+let support=(last-150).toFixed(2)
+let resistance=(last+150).toFixed(2)
 
-symbol=this.value
-loadChart()
-
-}
-
-/* BASIC AI TRADE */
-
-async function getPrice(){
-
-let r=await fetch(
-"https://api.binance.com/api/v3/ticker/price?symbol="+symbol
-)
-
-let d=await r.json()
-return parseFloat(d.price)
+document.getElementById("levels").innerText=
+"Support: "+support+" | Resistance: "+resistance
 
 }
 
-async function updateTrade(){
+function buyerSeller(){
+
+let avg=prices.reduce((a,b)=>a+b)/prices.length
+let last=prices[prices.length-1]
+
+let buyPower
+let sellPower
+
+if(last>avg){
+buyPower=70
+sellPower=30
+}else{
+buyPower=30
+sellPower=70
+}
+
+document.getElementById("buy").style.width=buyPower+"%"
+document.getElementById("sell").style.width=sellPower+"%"
+
+}
+
+function patternDetect(){
+
+let a=prices[prices.length-3]
+let b=prices[prices.length-2]
+let c=prices[prices.length-1]
+
+let text="No clear pattern"
+
+if(a<b && b<c) text="Bullish continuation"
+
+if(a>b && b>c) text="Bearish continuation"
+
+document.getElementById("pattern").innerText=text
+
+}
+
+function analysis(){
+
+let first=prices[0]
+let last=prices[prices.length-1]
+
+let text="Sideways market"
+
+if(last>first){
+text="Market bullish. Buyers controlling structure."
+}
+
+if(last<first){
+text="Market bearish. Sellers dominating."
+}
+
+document.getElementById("analysis").innerText=text
+
+}
+
+function recommendation(){
+
+let last=prices[prices.length-1]
+let avg=prices.reduce((a,b)=>a+b)/prices.length
+
+let text="Wait for setup"
+
+if(last>avg){
+text="Recommended BUY — price holding above support."
+}
+
+if(last<avg){
+text="Recommended SELL — price near resistance."
+}
+
+document.getElementById("recommend").innerText=text
+
+}
+
+function generateTrade(){
+
+if(trade) return
+
+let last=prices[prices.length-1]
+
+let direction=Math.random()>0.5?"BUY":"SELL"
+
+let entry=last
+
+let tp=direction==="BUY"?entry+120:entry-120
+let sl=direction==="BUY"?entry-120:entry+120
+
+trade={
+direction,
+entry,
+tp,
+sl
+}
+
+document.getElementById("trade").innerHTML=
+
+direction+
+"<br>Entry: "+entry.toFixed(2)+
+"<br>TP: "+tp.toFixed(2)+
+"<br>SL: "+sl.toFixed(2)
+
+}
+
+async function checkTrade(){
+
+if(!trade) return
 
 let price=await getPrice()
 
-let move=price*0.003
+if(trade.direction==="BUY"){
 
-document.getElementById("entry").innerText=price.toFixed(2)
-document.getElementById("tp").innerText=(price+move).toFixed(2)
-document.getElementById("sl").innerText=(price-move).toFixed(2)
+if(price>=trade.tp){
 
-document.getElementById("demand").innerText=(price*0.99).toFixed(2)
-document.getElementById("supply").innerText=(price*1.01).toFixed(2)
+wins++
+finish("tp")
 
 }
 
-function updatePower(){
+if(price<=trade.sl){
 
-let buy=60+Math.random()*20
-let sell=100-buy
-
-document.getElementById("buybar").style.width=buy+"%"
-document.getElementById("sellbar").style.width=sell+"%"
+losses++
+finish("sl")
 
 }
 
-setInterval(updateTrade,8000)
-setInterval(updatePower,12000)
+}
+
+if(trade.direction==="SELL"){
+
+if(price<=trade.tp){
+
+wins++
+finish("tp")
+
+}
+
+if(price>=trade.sl){
+
+losses++
+finish("sl")
+
+}
+
+}
+
+}
+
+function finish(type){
+
+if(type==="tp"){
+document.getElementById("trade").innerHTML+="<div class='tp'>TP DONE 👍</div>"
+}
+
+if(type==="sl"){
+document.getElementById("trade").innerHTML+="<div class='sl'>SL 🦴</div>"
+}
+
+trade=null
+
+updateWin()
+
+setTimeout(generateTrade,4000)
+
+}
+
+function updateWin(){
+
+let total=wins+losses
+
+if(total===0) return
+
+let rate=((wins/total)*100).toFixed(1)
+
+document.getElementById("winrate").innerText=rate+"%"
+
+}
+
+async function update(){
+
+let p=await getPrice()
+
+prices.push(p)
+
+if(prices.length>50) prices.shift()
+
+draw()
+
+supportResistance()
+
+buyerSeller()
+
+patternDetect()
+
+analysis()
+
+recommendation()
+
+}
+
+setInterval(update,5000)
+
+setInterval(checkTrade,3000)
+
+setInterval(generateTrade,10000)
+
+getHistory()
 
 </script>
 
 </body>
-         </html>
+                                  </html>

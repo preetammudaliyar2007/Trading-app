@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>AI Crypto Trading Dashboard</title>
+<title>AI Crypto Dashboard</title>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
@@ -17,16 +17,10 @@ font-family:Arial;
 
 header{
 display:flex;
-align-items:center;
 justify-content:space-between;
+align-items:center;
 padding:10px 20px;
 background:#08142b;
-}
-
-#coinSelect{
-padding:8px;
-font-size:16px;
-border-radius:6px;
 }
 
 #coinInfo{
@@ -37,7 +31,11 @@ gap:10px;
 
 #coinLogo{
 width:32px;
-height:32px;
+}
+
+#coinSelect{
+padding:6px;
+font-size:16px;
 }
 
 #chart{
@@ -45,18 +43,37 @@ width:100%;
 height:60vh;
 }
 
-#analysis{
+#panel{
 padding:20px;
 }
 
 .box{
-background:#122b55;
+background:#132c57;
 padding:15px;
 margin-bottom:15px;
 border-radius:10px;
 }
 
+.meter{
+height:12px;
+background:#333;
+border-radius:6px;
+overflow:hidden;
+}
+
+#powerBar{
+height:100%;
+background:lime;
+width:50%;
+}
+
+#tradeResult{
+font-size:28px;
+margin-top:10px;
+}
+
 </style>
+
 </head>
 
 <body>
@@ -71,14 +88,9 @@ border-radius:10px;
 <select id="coinSelect">
 
 <option value="BTCUSDT" data-logo="https://cryptologos.cc/logos/bitcoin-btc-logo.png">BTC</option>
-
 <option value="ETHUSDT" data-logo="https://cryptologos.cc/logos/ethereum-eth-logo.png">ETH</option>
-
 <option value="SOLUSDT" data-logo="https://cryptologos.cc/logos/solana-sol-logo.png">SOL</option>
-
 <option value="BNBUSDT" data-logo="https://cryptologos.cc/logos/bnb-bnb-logo.png">BNB</option>
-
-<option value="XRPUSDT" data-logo="https://cryptologos.cc/logos/xrp-xrp-logo.png">XRP</option>
 
 </select>
 
@@ -86,27 +98,69 @@ border-radius:10px;
 
 <div id="chart"></div>
 
-<div id="analysis">
+<div id="panel">
 
 <div class="box">
-<h3>Price Action Analysis</h3>
-<p id="priceAction">Waiting for market data...</p>
+
+<h3>AI Trade</h3>
+
+Entry: <span id="entry">-</span><br>
+TP: <span id="tp">-</span><br>
+SL: <span id="sl">-</span>
+
+<div id="tradeResult"></div>
+
 </div>
 
 <div class="box">
-<h3>Trader Recommendation</h3>
-<p id="recommendation">No trade currently.</p>
+
+<h3>Win Rate</h3>
+
+<span id="wins">0</span> Wins /
+<span id="losses">0</span> Losses
+
+</div>
+
+<div class="box">
+
+<h3>Buyer / Seller Power</h3>
+
+<div class="meter">
+<div id="powerBar"></div>
+</div>
+
+<p id="powerText"></p>
+
+</div>
+
+<div class="box">
+
+<h3>Price Action Analysis</h3>
+
+<p id="analysis">Waiting for data...</p>
+
+</div>
+
+<div class="box">
+
+<h3>Pattern Detection</h3>
+
+<p id="pattern">Scanning market...</p>
+
 </div>
 
 </div>
 
 <audio id="coinSound">
-<source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" type="audio/mpeg">
+<source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3">
 </audio>
 
 <script>
 
 let currentSymbol="BTCUSDT"
+let wins=0
+let losses=0
+let entry,tp,sl
 
 function loadChart(symbol){
 
@@ -122,21 +176,13 @@ symbol:"BINANCE:"+symbol,
 
 interval:"5",
 
-timezone:"Etc/UTC",
-
 theme:"dark",
 
 style:"1",
 
-locale:"en",
-
 toolbar_bg:"#0b1d3a",
 
-enable_publishing:false,
-
 allow_symbol_change:true,
-
-withdateranges:true,
 
 hide_side_toolbar:false,
 
@@ -162,35 +208,130 @@ currentSymbol=symbol
 
 loadChart(symbol)
 
-generateAnalysis()
+generateTrade()
 
 })
 
-function generateAnalysis(){
+function randomPrice(){
 
-let actions=["Market is testing resistance level multiple times.",
-"Strong bullish momentum detected.",
-"Liquidity sweep likely near support.",
-"Triangle pattern forming.",
-"Price consolidating before breakout."]
-
-let rec=["Wait for breakout confirmation.",
-"Possible buy opportunity near support.",
-"Short term sell pressure detected.",
-"Range trading environment.",
-"Trend continuation likely."]
-
-document.getElementById("priceAction").innerText=
-actions[Math.floor(Math.random()*actions.length)]
-
-document.getElementById("recommendation").innerText=
-rec[Math.floor(Math.random()*rec.length)]
+return 20000+Math.random()*5000
 
 }
 
-setInterval(generateAnalysis,8000)
+function generateTrade(){
+
+let price=randomPrice()
+
+entry=price.toFixed(2)
+
+tp=(price+100).toFixed(2)
+
+sl=(price-100).toFixed(2)
+
+document.getElementById("entry").innerText=entry
+document.getElementById("tp").innerText=tp
+document.getElementById("sl").innerText=sl
+
+document.getElementById("tradeResult").innerText=""
+
+setTimeout(checkTrade,7000)
+
+}
+
+function checkTrade(){
+
+let result=Math.random()
+
+if(result>0.5){
+
+wins++
+
+document.getElementById("tradeResult").innerText="👍 TP HIT"
+
+}else{
+
+losses++
+
+document.getElementById("tradeResult").innerText="❌ SL HIT"
+
+}
+
+document.getElementById("wins").innerText=wins
+document.getElementById("losses").innerText=losses
+
+setTimeout(generateTrade,4000)
+
+}
+
+function updatePower(){
+
+let buyer=Math.random()*100
+
+let seller=100-buyer
+
+document.getElementById("powerBar").style.width=buyer+"%"
+
+if(buyer>seller){
+
+document.getElementById("powerText").innerText="Buyers Control Market"
+
+}else{
+
+document.getElementById("powerText").innerText="Sellers Control Market"
+
+}
+
+}
+
+function updateAnalysis(){
+
+let texts=[
+
+"Price testing resistance multiple times on 5m timeframe",
+
+"Market forming higher highs bullish structure",
+
+"Liquidity sweep likely near support",
+
+"Range consolidation before breakout",
+
+"Trend continuation expected"
+
+]
+
+document.getElementById("analysis").innerText=texts[Math.floor(Math.random()*texts.length)]
+
+}
+
+function detectPattern(){
+
+let patterns=[
+
+"Triangle forming",
+
+"Bull Flag pattern",
+
+"Rising wedge",
+
+"No clear pattern",
+
+"Breakout structure forming"
+
+]
+
+document.getElementById("pattern").innerText=patterns[Math.floor(Math.random()*patterns.length)]
+
+}
+
+generateTrade()
+
+setInterval(updatePower,6000)
+
+setInterval(updateAnalysis,7000)
+
+setInterval(detectPattern,8000)
 
 </script>
 
 </body>
-</html>
+  </html>

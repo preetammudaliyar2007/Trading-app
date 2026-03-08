@@ -22,34 +22,26 @@ align-items:center;
 padding:10px;
 border-bottom:2px solid #39ff14;
 color:#39ff14;
-background:black;
 }
 
-/* MAIN LAYOUT */
+/* CHART FULL WIDTH */
 
-.container{
-display:flex;
-height:92vh;
+.chart-container{
+width:100%;
+height:80vh;
 }
 
-/* CHART */
-
-.chart{
-flex:4;
-padding:5px;
+#chart{
+width:100%;
+height:100%;
 }
 
-/* SIDE PANEL */
+/* ANALYSIS BELOW CHART */
 
-.side{
-flex:1;
-border-left:2px solid #39ff14;
-padding:10px;
-overflow:auto;
-background:#050505;
+.analysis{
+padding:15px;
+border-top:2px solid #39ff14;
 }
-
-/* PANELS */
 
 .panel{
 border:1px solid #39ff14;
@@ -63,8 +55,6 @@ font-weight:bold;
 margin-bottom:5px;
 }
 
-/* SELECT */
-
 select{
 background:black;
 color:#39ff14;
@@ -75,17 +65,14 @@ padding:5px;
 /* FOOTER */
 
 .footer{
-position:fixed;
-bottom:0;
-width:100%;
 text-align:center;
 padding:6px;
-background:black;
 border-top:2px solid #39ff14;
 color:#39ff14;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -94,55 +81,55 @@ color:#39ff14;
 
 <div>⚡ Preetam Smart Terminal</div>
 
-<div>
 <select id="coinSelect"></select>
-</div>
 
 </div>
 
-<div class="container">
+<!-- CHART -->
 
-<div class="chart">
+<div class="chart-container">
 <div id="chart"></div>
 </div>
 
-<div class="side">
+<!-- ANALYSIS BELOW -->
+
+<div class="analysis">
 
 <div class="panel">
 <div class="title">AI Trade Signal</div>
-<div id="tradeSignal">Scanning market...</div>
+<div id="tradeSignal">Scanning...</div>
 </div>
 
 <div class="panel">
 <div class="title">Demand / Supply</div>
-<div id="zones">Scanning zones...</div>
+<div id="zones">Scanning...</div>
 </div>
 
 <div class="panel">
 <div class="title">Breakout Detection</div>
-<div id="breakout">Checking breakout...</div>
+<div id="breakout">Checking...</div>
 </div>
 
+<div class="panel">
+<div class="title">Win Rate</div>
+<div id="winrate">0%</div>
 </div>
 
 </div>
 
 <div class="footer">
-⚡ Powered by Preetam Mudaliyar ⚡
+⚡ Powered by Preetam Mudaliyar | Sourced by ChatGPT ⚡
 </div>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
 
-/* COINS (50+) */
+/* COINS */
 
 const coins=[
-"BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","DOGEUSDT",
-"ADAUSDT","AVAXUSDT","DOTUSDT","LINKUSDT","LTCUSDT",
-"MATICUSDT","ATOMUSDT","NEARUSDT","APTUSDT","SUIUSDT",
-"FTMUSDT","TRXUSDT","ARBUSDT","OPUSDT","FILUSDT","ETCUSDT",
-"AAVEUSDT","ICPUSDT","HBARUSDT","EGLDUSDT","THETAUSDT"
+"BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT",
+"DOGEUSDT","ADAUSDT","AVAXUSDT","DOTUSDT","LINKUSDT"
 ];
 
 const select=document.getElementById("coinSelect");
@@ -161,7 +148,7 @@ coin=select.value;
 loadChart();
 };
 
-/* LOAD CHART */
+/* CHART */
 
 function loadChart(){
 
@@ -170,11 +157,10 @@ document.getElementById("chart").innerHTML="";
 new TradingView.widget({
 
 width:"100%",
-height:800,
+height:"100%",
 
 symbol:"BINANCE:"+coin,
 interval:"15",
-timezone:"Etc/UTC",
 theme:"dark",
 style:"1",
 
@@ -191,7 +177,7 @@ container_id:"chart"
 
 loadChart();
 
-/* FETCH DATA */
+/* DATA */
 
 async function getData(){
 
@@ -207,19 +193,19 @@ return await r.json();
 
 function detectZones(data){
 
-let demand=[];
-let supply=[];
+let demand=0;
+let supply=0;
 
 for(let i=2;i<data.length;i++){
 
-let low=parseFloat(data[i][3]);
-let high=parseFloat(data[i][2]);
+let low=data[i][3];
+let high=data[i][2];
 
-let prevLow=parseFloat(data[i-1][3]);
-let prevHigh=parseFloat(data[i-1][2]);
+let prevLow=data[i-1][3];
+let prevHigh=data[i-1][2];
 
-if(low<prevLow) demand.push(low);
-if(high>prevHigh) supply.push(high);
+if(low<prevLow) demand++;
+if(high>prevHigh) supply++;
 
 }
 
@@ -231,38 +217,86 @@ return {demand,supply};
 
 function breakout(data){
 
-let last=parseFloat(data[data.length-1][4]);
-let prevHigh=parseFloat(data[data.length-2][2]);
-let prevLow=parseFloat(data[data.length-2][3]);
+let last=data[data.length-1][4];
+let prevHigh=data[data.length-2][2];
+let prevLow=data[data.length-2][3];
 
 if(last>prevHigh) return "Bullish Breakout";
-
 if(last<prevLow) return "Bearish Breakout";
 
 return "No breakout";
 
 }
 
-/* TRADE SIGNAL */
+/* AI TRADE SYSTEM */
 
-function tradeSignal(data){
+let wins=0;
+let losses=0;
 
-let last=parseFloat(data[data.length-1][4]);
-let prev=parseFloat(data[data.length-5][4]);
+function generateTrade(price){
 
-let entry=last;
-let sl=entry*0.98;
-let tp=entry*1.04;
+let direction=Math.random()>0.5?"LONG":"SHORT";
 
-if(last>prev){
+let entry=price;
 
-return "LONG<br>Entry: "+entry.toFixed(2)+
-"<br>Stop Loss: "+sl.toFixed(2)+
-"<br>Target: "+tp.toFixed(2);
+let tp=direction=="LONG"
+? entry+150
+: entry-150;
+
+let sl=direction=="LONG"
+? entry-100
+: entry+100;
+
+return {direction,entry,tp,sl};
 
 }
 
-return "WAIT";
+let currentTrade=null;
+
+function evaluateTrade(price){
+
+if(!currentTrade){
+currentTrade=generateTrade(price);
+return;
+}
+
+if(currentTrade.direction=="LONG"){
+
+if(price>=currentTrade.tp){
+wins++;
+currentTrade=null;
+}
+
+if(price<=currentTrade.sl){
+losses++;
+currentTrade=null;
+}
+
+}
+
+if(currentTrade.direction=="SHORT"){
+
+if(price<=currentTrade.tp){
+wins++;
+currentTrade=null;
+}
+
+if(price>=currentTrade.sl){
+losses++;
+currentTrade=null;
+}
+
+}
+
+}
+
+function winRate(){
+
+let total=wins+losses;
+
+if(total==0) return "0%";
+
+return ((wins/total)*100).toFixed(1)+"%";
 
 }
 
@@ -272,23 +306,38 @@ async function runAI(){
 
 let data=await getData();
 
+let price=parseFloat(data[data.length-1][4]);
+
+evaluateTrade(price);
+
+if(!currentTrade){
+currentTrade=generateTrade(price);
+}
+
 let z=detectZones(data);
 
 document.getElementById("zones").innerHTML=
-"Demand zones: "+z.demand.length+
-"<br>Supply zones: "+z.supply.length;
-
-document.getElementById("tradeSignal").innerHTML=
-tradeSignal(data);
+"Demand zones: "+z.demand+
+"<br>Supply zones: "+z.supply;
 
 document.getElementById("breakout").innerHTML=
 breakout(data);
 
+document.getElementById("tradeSignal").innerHTML=
+
+currentTrade.direction+
+"<br>Entry: "+currentTrade.entry.toFixed(2)+
+"<br>TP: "+currentTrade.tp.toFixed(2)+
+"<br>SL: "+currentTrade.sl.toFixed(2);
+
+document.getElementById("winrate").innerHTML=
+winRate();
+
 }
 
-setInterval(runAI,15000);
+setInterval(runAI,10000);
 
 </script>
 
 </body>
-  </html>
+</html>

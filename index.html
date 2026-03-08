@@ -18,10 +18,11 @@ color:white;
 .header{
 display:flex;
 justify-content:space-between;
+align-items:center;
 padding:10px;
 border-bottom:2px solid #39ff14;
-background:black;
 color:#39ff14;
+background:black;
 }
 
 /* MAIN LAYOUT */
@@ -31,20 +32,21 @@ display:flex;
 height:92vh;
 }
 
-/* BIG CHART */
+/* CHART */
 
 .chart{
-flex:3;
+flex:4;
 padding:5px;
 }
 
-/* ANALYSIS PANEL */
+/* SIDE PANEL */
 
 .side{
 flex:1;
 border-left:2px solid #39ff14;
 padding:10px;
 overflow:auto;
+background:#050505;
 }
 
 /* PANELS */
@@ -61,7 +63,7 @@ font-weight:bold;
 margin-bottom:5px;
 }
 
-/* COIN SELECT */
+/* SELECT */
 
 select{
 background:black;
@@ -70,8 +72,20 @@ border:1px solid #39ff14;
 padding:5px;
 }
 
-</style>
+/* FOOTER */
 
+.footer{
+position:fixed;
+bottom:0;
+width:100%;
+text-align:center;
+padding:6px;
+background:black;
+border-top:2px solid #39ff14;
+color:#39ff14;
+}
+
+</style>
 </head>
 
 <body>
@@ -81,9 +95,7 @@ padding:5px;
 <div>⚡ Preetam Smart Terminal</div>
 
 <div>
-
 <select id="coinSelect"></select>
-
 </div>
 
 </div>
@@ -98,7 +110,7 @@ padding:5px;
 
 <div class="panel">
 <div class="title">AI Trade Signal</div>
-<div id="tradeSignal">Scanning...</div>
+<div id="tradeSignal">Scanning market...</div>
 </div>
 
 <div class="panel">
@@ -107,35 +119,30 @@ padding:5px;
 </div>
 
 <div class="panel">
-<div class="title">Liquidity Sweep</div>
-<div id="liquidity">Checking liquidity...</div>
-</div>
-
-<div class="panel">
-<div class="title">Whale Activity</div>
-<div id="whales">Watching whales...</div>
-</div>
-
-<div class="panel">
-<div class="title">Liquidation Map</div>
-<div id="liquidations">Monitoring liquidations...</div>
+<div class="title">Breakout Detection</div>
+<div id="breakout">Checking breakout...</div>
 </div>
 
 </div>
 
+</div>
+
+<div class="footer">
+⚡ Powered by Preetam Mudaliyar | Sourced by ChatGPT ⚡
 </div>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
 
-/* COIN LIST (50+) */
+/* COINS (50+) */
 
 const coins=[
 "BTCUSDT","ETHUSDT","BNBUSDT","SOLUSDT","XRPUSDT","DOGEUSDT",
 "ADAUSDT","AVAXUSDT","DOTUSDT","LINKUSDT","LTCUSDT",
 "MATICUSDT","ATOMUSDT","NEARUSDT","APTUSDT","SUIUSDT",
-"FTMUSDT","TRXUSDT","ARBUSDT","OPUSDT"
+"FTMUSDT","TRXUSDT","ARBUSDT","OPUSDT","FILUSDT","ETCUSDT",
+"AAVEUSDT","ICPUSDT","HBARUSDT","EGLDUSDT","THETAUSDT"
 ];
 
 const select=document.getElementById("coinSelect");
@@ -154,7 +161,7 @@ coin=select.value;
 loadChart();
 };
 
-/* BIG CHART */
+/* LOAD CHART */
 
 function loadChart(){
 
@@ -163,16 +170,18 @@ document.getElementById("chart").innerHTML="";
 new TradingView.widget({
 
 width:"100%",
-height:750,
+height:800,
 
 symbol:"BINANCE:"+coin,
 interval:"15",
+timezone:"Etc/UTC",
 theme:"dark",
 style:"1",
 
 hide_side_toolbar:false,
+allow_symbol_change:true,
 
-studies:[], /* removes RSI MACD */
+studies:[],
 
 container_id:"chart"
 
@@ -182,7 +191,7 @@ container_id:"chart"
 
 loadChart();
 
-/* FETCH MARKET DATA */
+/* FETCH DATA */
 
 async function getData(){
 
@@ -227,13 +236,14 @@ let prevHigh=parseFloat(data[data.length-2][2]);
 let prevLow=parseFloat(data[data.length-2][3]);
 
 if(last>prevHigh) return "Bullish Breakout";
+
 if(last<prevLow) return "Bearish Breakout";
 
-return "No Breakout";
+return "No breakout";
 
 }
 
-/* SMART MONEY TRADE */
+/* TRADE SIGNAL */
 
 function tradeSignal(data){
 
@@ -247,54 +257,12 @@ let tp=entry*1.04;
 if(last>prev){
 
 return "LONG<br>Entry: "+entry.toFixed(2)+
-"<br>SL: "+sl.toFixed(2)+
-"<br>TP: "+tp.toFixed(2);
+"<br>Stop Loss: "+sl.toFixed(2)+
+"<br>Target: "+tp.toFixed(2);
 
 }
 
 return "WAIT";
-
-}
-
-/* LIQUIDITY */
-
-function liquidity(data){
-
-let lastHigh=data[data.length-1][2];
-let prevHigh=data[data.length-2][2];
-
-if(lastHigh>prevHigh) return "Liquidity sweep above highs";
-
-return "No sweep";
-
-}
-
-/* WHALE SIMULATION */
-
-function whales(){
-
-const msgs=[
-"Large wallet accumulation",
-"Possible whale sell wall",
-"Exchange inflow detected",
-"Stable accumulation"
-];
-
-return msgs[Math.floor(Math.random()*msgs.length)];
-
-}
-
-/* LIQUIDATION SIMULATION */
-
-function liquidations(){
-
-const msgs=[
-"Short liquidations increasing",
-"Long liquidations cluster",
-"Liquidation wall detected"
-];
-
-return msgs[Math.floor(Math.random()*msgs.length)];
 
 }
 
@@ -307,21 +275,14 @@ let data=await getData();
 let z=detectZones(data);
 
 document.getElementById("zones").innerHTML=
-
 "Demand zones: "+z.demand.length+
 "<br>Supply zones: "+z.supply.length;
 
 document.getElementById("tradeSignal").innerHTML=
 tradeSignal(data);
 
-document.getElementById("liquidity").innerHTML=
-liquidity(data);
-
-document.getElementById("whales").innerHTML=
-whales();
-
-document.getElementById("liquidations").innerHTML=
-liquidations();
+document.getElementById("breakout").innerHTML=
+breakout(data);
 
 }
 
@@ -330,4 +291,4 @@ setInterval(runAI,15000);
 </script>
 
 </body>
-</html>
+  </html>

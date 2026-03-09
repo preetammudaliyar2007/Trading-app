@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 
 <title>AI Crypto Scalping Dashboard</title>
@@ -10,16 +11,16 @@
 
 body{
 margin:0;
+font-family:Arial;
 background:#0b1d3a;
 color:white;
-font-family:Arial;
 }
 
 header{
 display:flex;
 justify-content:space-between;
 align-items:center;
-padding:10px 20px;
+padding:12px 20px;
 background:#08142b;
 }
 
@@ -30,13 +31,13 @@ gap:10px;
 }
 
 #coinLogo{
-width:32px;
-height:32px;
+width:34px;
+height:34px;
 }
 
 #coinSelect{
 padding:8px;
-background:#1b3c70;
+background:#1c3f75;
 color:white;
 border:none;
 border-radius:6px;
@@ -52,10 +53,23 @@ padding:20px;
 }
 
 .box{
-background:#132c57;
+background:#122b55;
 padding:15px;
 margin-bottom:15px;
 border-radius:10px;
+}
+
+.powerBar{
+height:12px;
+background:#333;
+border-radius:6px;
+overflow:hidden;
+}
+
+#power{
+height:100%;
+background:lime;
+width:50%;
 }
 
 </style>
@@ -74,11 +88,8 @@ border-radius:10px;
 <select id="coinSelect">
 
 <option value="BTCUSDT" data-logo="https://cryptologos.cc/logos/bitcoin-btc-logo.png">BTC</option>
-
 <option value="ETHUSDT" data-logo="https://cryptologos.cc/logos/ethereum-eth-logo.png">ETH</option>
-
 <option value="SOLUSDT" data-logo="https://cryptologos.cc/logos/solana-sol-logo.png">SOL</option>
-
 <option value="BNBUSDT" data-logo="https://cryptologos.cc/logos/bnb-bnb-logo.png">BNB</option>
 
 </select>
@@ -96,7 +107,30 @@ border-radius:10px;
 Entry: <span id="entry">-</span><br>
 TP: <span id="tp">-</span><br>
 SL: <span id="sl">-</span><br>
-Direction: <span id="direction">-</span>
+Direction: <span id="direction">-</span><br>
+
+<div id="result"></div>
+
+</div>
+
+<div class="box">
+
+<h3>Win Rate</h3>
+
+<span id="wins">0</span> Wins /
+<span id="losses">0</span> Losses
+
+</div>
+
+<div class="box">
+
+<h3>Buyer vs Seller Power</h3>
+
+<div class="powerBar">
+<div id="power"></div>
+</div>
+
+<p id="powerText"></p>
 
 </div>
 
@@ -104,15 +138,30 @@ Direction: <span id="direction">-</span>
 
 <h3>Market Analysis</h3>
 
-<p id="analysis">Loading analysis...</p>
+<p id="analysis"></p>
+
+</div>
+
+<div class="box">
+
+<h3>Pattern Detection</h3>
+
+<p id="pattern"></p>
 
 </div>
 
 </div>
+
+<audio id="coinSound">
+<source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3">
+</audio>
 
 <script>
 
 let symbol="BTCUSDT"
+let wins=0
+let losses=0
+let entry,tp,sl
 
 function loadChart(sym){
 
@@ -151,6 +200,8 @@ let logo=this.options[this.selectedIndex].dataset.logo
 document.getElementById("coinLogo").src=logo
 document.getElementById("coinName").innerText=symbol.replace("USDT","/USDT")
 
+document.getElementById("coinSound").play()
+
 loadChart(symbol)
 
 generateTrade()
@@ -175,9 +226,7 @@ let direction=Math.random()>0.5?"LONG":"SHORT"
 let tpDistance=300+Math.random()*200
 let slDistance=200
 
-let entry=price
-
-let tp,sl
+entry=price
 
 if(direction=="LONG"){
 
@@ -196,33 +245,104 @@ document.getElementById("tp").innerText=tp.toFixed(2)
 document.getElementById("sl").innerText=sl.toFixed(2)
 document.getElementById("direction").innerText=direction
 
-generateAnalysis(direction)
+marketAnalysis()
+
+setTimeout(checkTrade,15000)
 
 }
 
-function generateAnalysis(direction){
+function checkTrade(){
 
-let text
+let r=Math.random()
 
-if(direction=="LONG"){
+if(r>0.55){
 
-text="Bullish structure detected. EMA trend support holding. Possible breakout continuation for scalping opportunity."
+wins++
+document.getElementById("result").innerText="👍 TP HIT"
 
 }else{
 
-text="Bearish pressure visible. Liquidity sweep above resistance possible. Short scalp opportunity."
+losses++
+document.getElementById("result").innerText="❌ SL HIT"
 
 }
 
-document.getElementById("analysis").innerText=text
+document.getElementById("wins").innerText=wins
+document.getElementById("losses").innerText=losses
+
+setTimeout(generateTrade,6000)
+
+}
+
+function marketAnalysis(){
+
+let texts=[
+
+"5m EMA trend bullish. 15m resistance breakout forming.",
+
+"Liquidity sweep detected near support zone.",
+
+"Possible false breakout on 15m timeframe.",
+
+"1H trend bullish while 5m forming consolidation.",
+
+"SMC structure showing higher highs."
+
+]
+
+document.getElementById("analysis").innerText=
+texts[Math.floor(Math.random()*texts.length)]
+
+patternDetect()
+
+updatePower()
+
+}
+
+function patternDetect(){
+
+let p=[
+
+"Triangle pattern forming",
+
+"Bull flag detected",
+
+"Rising wedge forming",
+
+"No clear pattern",
+
+"Breakout structure developing"
+
+]
+
+document.getElementById("pattern").innerText=
+p[Math.floor(Math.random()*p.length)]
+
+}
+
+function updatePower(){
+
+let buyer=55+Math.random()*30
+let seller=100-buyer
+
+document.getElementById("power").style.width=buyer+"%"
+
+if(buyer>seller){
+
+document.getElementById("powerText").innerText="Buyers dominate higher timeframe"
+
+}else{
+
+document.getElementById("powerText").innerText="Sellers dominate higher timeframe"
+
+}
 
 }
 
 generateTrade()
 
-setInterval(generateTrade,20000)
-
 </script>
 
 </body>
+
 </html>

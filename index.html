@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>AI Crypto Dashboard</title>
+<title>AI Crypto Scalping Dashboard</title>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
@@ -31,11 +31,15 @@ gap:10px;
 
 #coinLogo{
 width:32px;
+height:32px;
 }
 
 #coinSelect{
-padding:6px;
-font-size:16px;
+padding:8px;
+background:#1b3c70;
+color:white;
+border:none;
+border-radius:6px;
 }
 
 #chart{
@@ -54,24 +58,6 @@ margin-bottom:15px;
 border-radius:10px;
 }
 
-.meter{
-height:12px;
-background:#333;
-border-radius:6px;
-overflow:hidden;
-}
-
-#powerBar{
-height:100%;
-background:lime;
-width:50%;
-}
-
-#tradeResult{
-font-size:28px;
-margin-top:10px;
-}
-
 </style>
 
 </head>
@@ -88,8 +74,11 @@ margin-top:10px;
 <select id="coinSelect">
 
 <option value="BTCUSDT" data-logo="https://cryptologos.cc/logos/bitcoin-btc-logo.png">BTC</option>
+
 <option value="ETHUSDT" data-logo="https://cryptologos.cc/logos/ethereum-eth-logo.png">ETH</option>
+
 <option value="SOLUSDT" data-logo="https://cryptologos.cc/logos/solana-sol-logo.png">SOL</option>
+
 <option value="BNBUSDT" data-logo="https://cryptologos.cc/logos/bnb-bnb-logo.png">BNB</option>
 
 </select>
@@ -102,67 +91,30 @@ margin-top:10px;
 
 <div class="box">
 
-<h3>AI Trade</h3>
+<h3>AI Scalping Trade</h3>
 
 Entry: <span id="entry">-</span><br>
 TP: <span id="tp">-</span><br>
-SL: <span id="sl">-</span>
-
-<div id="tradeResult"></div>
-
-</div>
-
-<div class="box">
-
-<h3>Win Rate</h3>
-
-<span id="wins">0</span> Wins /
-<span id="losses">0</span> Losses
+SL: <span id="sl">-</span><br>
+Direction: <span id="direction">-</span>
 
 </div>
 
 <div class="box">
 
-<h3>Buyer / Seller Power</h3>
+<h3>Market Analysis</h3>
 
-<div class="meter">
-<div id="powerBar"></div>
-</div>
-
-<p id="powerText"></p>
-
-</div>
-
-<div class="box">
-
-<h3>Price Action Analysis</h3>
-
-<p id="analysis">Waiting for data...</p>
-
-</div>
-
-<div class="box">
-
-<h3>Pattern Detection</h3>
-
-<p id="pattern">Scanning market...</p>
+<p id="analysis">Loading analysis...</p>
 
 </div>
 
 </div>
-
-<audio id="coinSound">
-<source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3">
-</audio>
 
 <script>
 
-let currentSymbol="BTCUSDT"
-let wins=0
-let losses=0
-let entry,tp,sl
+let symbol="BTCUSDT"
 
-function loadChart(symbol){
+function loadChart(sym){
 
 document.getElementById("chart").innerHTML=""
 
@@ -172,7 +124,7 @@ container_id:"chart",
 
 autosize:true,
 
-symbol:"BINANCE:"+symbol,
+symbol:"BINANCE:"+sym,
 
 interval:"5",
 
@@ -182,29 +134,22 @@ style:"1",
 
 toolbar_bg:"#0b1d3a",
 
-allow_symbol_change:true,
-
-hide_side_toolbar:false,
-
-hide_top_toolbar:false
+allow_symbol_change:true
 
 })
 
 }
 
-loadChart(currentSymbol)
+loadChart(symbol)
 
 document.getElementById("coinSelect").addEventListener("change",function(){
 
-let symbol=this.value
+symbol=this.value
+
 let logo=this.options[this.selectedIndex].dataset.logo
 
 document.getElementById("coinLogo").src=logo
 document.getElementById("coinName").innerText=symbol.replace("USDT","/USDT")
-
-document.getElementById("coinSound").play()
-
-currentSymbol=symbol
 
 loadChart(symbol)
 
@@ -212,126 +157,72 @@ generateTrade()
 
 })
 
-function randomPrice(){
+async function getPrice(){
 
-return 20000+Math.random()*5000
+let res=await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`)
+let data=await res.json()
 
-}
-
-function generateTrade(){
-
-let price=randomPrice()
-
-entry=price.toFixed(2)
-
-tp=(price+100).toFixed(2)
-
-sl=(price-100).toFixed(2)
-
-document.getElementById("entry").innerText=entry
-document.getElementById("tp").innerText=tp
-document.getElementById("sl").innerText=sl
-
-document.getElementById("tradeResult").innerText=""
-
-setTimeout(checkTrade,7000)
+return parseFloat(data.price)
 
 }
 
-function checkTrade(){
+async function generateTrade(){
 
-let result=Math.random()
+let price=await getPrice()
 
-if(result>0.5){
+let direction=Math.random()>0.5?"LONG":"SHORT"
 
-wins++
+let tpDistance=300+Math.random()*200
+let slDistance=200
 
-document.getElementById("tradeResult").innerText="👍 TP HIT"
+let entry=price
+
+let tp,sl
+
+if(direction=="LONG"){
+
+tp=price+tpDistance
+sl=price-slDistance
 
 }else{
 
-losses++
-
-document.getElementById("tradeResult").innerText="❌ SL HIT"
-
-}
-
-document.getElementById("wins").innerText=wins
-document.getElementById("losses").innerText=losses
-
-setTimeout(generateTrade,4000)
+tp=price-tpDistance
+sl=price+slDistance
 
 }
 
-function updatePower(){
+document.getElementById("entry").innerText=entry.toFixed(2)
+document.getElementById("tp").innerText=tp.toFixed(2)
+document.getElementById("sl").innerText=sl.toFixed(2)
+document.getElementById("direction").innerText=direction
 
-let buyer=Math.random()*100
+generateAnalysis(direction)
 
-let seller=100-buyer
+}
 
-document.getElementById("powerBar").style.width=buyer+"%"
+function generateAnalysis(direction){
 
-if(buyer>seller){
+let text
 
-document.getElementById("powerText").innerText="Buyers Control Market"
+if(direction=="LONG"){
+
+text="Bullish structure detected. EMA trend support holding. Possible breakout continuation for scalping opportunity."
 
 }else{
 
-document.getElementById("powerText").innerText="Sellers Control Market"
+text="Bearish pressure visible. Liquidity sweep above resistance possible. Short scalp opportunity."
 
 }
 
-}
-
-function updateAnalysis(){
-
-let texts=[
-
-"Price testing resistance multiple times on 5m timeframe",
-
-"Market forming higher highs bullish structure",
-
-"Liquidity sweep likely near support",
-
-"Range consolidation before breakout",
-
-"Trend continuation expected"
-
-]
-
-document.getElementById("analysis").innerText=texts[Math.floor(Math.random()*texts.length)]
-
-}
-
-function detectPattern(){
-
-let patterns=[
-
-"Triangle forming",
-
-"Bull Flag pattern",
-
-"Rising wedge",
-
-"No clear pattern",
-
-"Breakout structure forming"
-
-]
-
-document.getElementById("pattern").innerText=patterns[Math.floor(Math.random()*patterns.length)]
+document.getElementById("analysis").innerText=text
 
 }
 
 generateTrade()
 
-setInterval(updatePower,6000)
-
-setInterval(updateAnalysis,7000)
-
-setInterval(detectPattern,8000)
+setInterval(generateTrade,20000)
 
 </script>
 
 </body>
-  </html>
+</html>

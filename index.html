@@ -107,14 +107,14 @@ width:50%;
 Entry: <span id="entry">-</span><br>
 TP: <span id="tp">-</span><br>
 SL: <span id="sl">-</span><br>
-Direction: <span id="direction">-</span><br>
+Direction: <span id="direction">-</span>
 
 </div>
 
 <div class="box">
 
 <h3>Market Analysis</h3>
-<p id="analysis">Loading...</p>
+<p id="analysis">Waiting for analysis...</p>
 
 </div>
 
@@ -181,7 +181,17 @@ document.getElementById("coinSound").play()
 
 loadChart(symbol)
 
-generateTrade()
+/* reset old trade */
+
+document.getElementById("entry").innerText="-"
+document.getElementById("tp").innerText="-"
+document.getElementById("sl").innerText="-"
+document.getElementById("direction").innerText="-"
+
+document.getElementById("analysis").innerText=
+"Analyzing "+symbol.replace("USDT","")+" market..."
+
+setTimeout(generateTrade,1500)
 
 })
 
@@ -213,12 +223,8 @@ direction="SHORT"
 
 if(direction=="NONE"){
 
-document.getElementById("analysis").innerText="Market ranging. No scalping trade."
-
-document.getElementById("entry").innerText="-"
-document.getElementById("tp").innerText="-"
-document.getElementById("sl").innerText="-"
-document.getElementById("direction").innerText="-"
+document.getElementById("analysis").innerText=
+`${symbol.replace("USDT","")} market ranging. No scalping trade.`
 
 return
 
@@ -250,7 +256,15 @@ document.getElementById("sl").innerText=sl.toFixed(2)
 document.getElementById("direction").innerText=direction
 
 document.getElementById("analysis").innerText=
-`EMA trend confirmed. Support ${support.toFixed(2)} | Resistance ${resistance.toFixed(2)}. Scalping opportunity detected.`
+`${symbol.replace("USDT","")} analysis:
+
+EMA trend confirmed.
+
+Support: ${support.toFixed(2)}
+
+Resistance: ${resistance.toFixed(2)}
+
+Scalping opportunity detected near market price.`
 
 updatePower(direction)
 
@@ -261,11 +275,11 @@ function updatePower(direction){
 let powerValue
 
 if(direction=="LONG"){
+
 powerValue=70+Math.random()*20
 document.getElementById("powerText").innerText="Buyers dominate higher timeframe"
-}
 
-else{
+}else{
 
 powerValue=30-Math.random()*20
 document.getElementById("powerText").innerText="Sellers dominate higher timeframe"

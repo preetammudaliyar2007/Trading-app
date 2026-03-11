@@ -3,7 +3,7 @@
 
 <head>
 
-<title>AI Crypto Scalping Dashboard</title>
+<title>AI Crypto Dashboard</title>
 
 <script src="https://s3.tradingview.com/tv.js"></script>
 
@@ -14,6 +14,33 @@ margin:0;
 font-family:Arial;
 background:#0b1d3a;
 color:white;
+}
+
+#loginPage{
+display:flex;
+height:100vh;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+}
+
+input{
+padding:10px;
+margin:10px;
+border:none;
+border-radius:6px;
+}
+
+button{
+padding:10px 20px;
+background:#1c3f75;
+color:white;
+border:none;
+border-radius:6px;
+}
+
+#dashboard{
+display:none;
 }
 
 header{
@@ -31,8 +58,7 @@ gap:10px;
 }
 
 #coinLogo{
-width:34px;
-height:34px;
+width:32px;
 }
 
 #coinSelect{
@@ -59,24 +85,27 @@ margin-bottom:15px;
 border-radius:10px;
 }
 
-.powerBar{
-height:12px;
-background:#333;
-border-radius:6px;
-overflow:hidden;
-}
-
-#power{
-height:100%;
-background:lime;
-width:50%;
-}
-
 </style>
 
 </head>
 
 <body>
+
+<!-- LOGIN PAGE -->
+
+<div id="loginPage">
+
+<h2>Login to AI Trading Dashboard</h2>
+
+<input id="username" placeholder="Enter username">
+
+<button onclick="login()">Enter Dashboard</button>
+
+</div>
+
+<!-- DASHBOARD -->
+
+<div id="dashboard">
 
 <header>
 
@@ -90,7 +119,6 @@ width:50%;
 <option value="BTCUSDT" data-logo="https://cryptologos.cc/logos/bitcoin-btc-logo.png">BTC</option>
 <option value="ETHUSDT" data-logo="https://cryptologos.cc/logos/ethereum-eth-logo.png">ETH</option>
 <option value="SOLUSDT" data-logo="https://cryptologos.cc/logos/solana-sol-logo.png">SOL</option>
-<option value="BNBUSDT" data-logo="https://cryptologos.cc/logos/bnb-bnb-logo.png">BNB</option>
 
 </select>
 
@@ -102,43 +130,74 @@ width:50%;
 
 <div class="box">
 
-<h3>AI Scalping Trade</h3>
+<h3>AI Trade</h3>
 
 Entry: <span id="entry">-</span><br>
 TP: <span id="tp">-</span><br>
-SL: <span id="sl">-</span><br>
-Direction: <span id="direction">-</span>
+SL: <span id="sl">-</span>
 
 </div>
 
 <div class="box">
 
-<h3>Market Analysis</h3>
+<h3>Analysis</h3>
+
 <p id="analysis">Waiting for analysis...</p>
 
 </div>
 
-<div class="box">
-
-<h3>Buyer vs Seller Power</h3>
-
-<div class="powerBar">
-<div id="power"></div>
-</div>
-
-<p id="powerText"></p>
-
 </div>
 
 </div>
-
-<audio id="coinSound">
-<source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3">
-</audio>
 
 <script>
 
 let symbol="BTCUSDT"
+let user=""
+
+/* LOGIN */
+
+function login(){
+
+user=document.getElementById("username").value
+
+if(user==""){
+
+alert("Enter username")
+
+return
+
+}
+
+localStorage.setItem("dashboard_user",user)
+
+startDashboard()
+
+}
+
+function startDashboard(){
+
+user=localStorage.getItem("dashboard_user")
+
+document.getElementById("loginPage").style.display="none"
+
+document.getElementById("dashboard").style.display="block"
+
+loadChart(symbol)
+
+generateTrade()
+
+}
+
+/* AUTO LOGIN */
+
+if(localStorage.getItem("dashboard_user")){
+
+startDashboard()
+
+}
+
+/* CHART */
 
 function loadChart(sym){
 
@@ -160,13 +219,29 @@ style:"1",
 
 toolbar_bg:"#0b1d3a",
 
-allow_symbol_change:true
+allow_symbol_change:true,
+
+hide_side_toolbar:false,
+
+hide_top_toolbar:false,
+
+/* SAVE CHART PER USER */
+
+charts_storage_url:"https://saveload.tradingview.com",
+
+charts_storage_api_version:"1.1",
+
+client_id:"crypto_ai_dashboard",
+
+user_id:user,
+
+load_last_chart:true
 
 })
 
 }
 
-loadChart(symbol)
+/* COIN CHANGE */
 
 document.getElementById("coinSelect").addEventListener("change",function(){
 
@@ -177,23 +252,13 @@ let logo=this.options[this.selectedIndex].dataset.logo
 document.getElementById("coinLogo").src=logo
 document.getElementById("coinName").innerText=symbol.replace("USDT","/USDT")
 
-document.getElementById("coinSound").play()
-
 loadChart(symbol)
 
-/* reset old trade */
-
-document.getElementById("entry").innerText="-"
-document.getElementById("tp").innerText="-"
-document.getElementById("sl").innerText="-"
-document.getElementById("direction").innerText="-"
-
-document.getElementById("analysis").innerText=
-"Analyzing "+symbol.replace("USDT","")+" market..."
-
-setTimeout(generateTrade,1500)
+generateTrade()
 
 })
+
+/* TRADE LOGIC */
 
 async function generateTrade(){
 
@@ -206,27 +271,14 @@ let lows=candles.map(c=>parseFloat(c[3]))
 
 let price=closes[closes.length-1]
 
-let ema=closes.slice(-20).reduce((a,b)=>a+b)/20
-
 let support=Math.min(...lows.slice(-15))
 let resistance=Math.max(...highs.slice(-15))
 
-let direction="NONE"
+let direction="LONG"
 
-if(price>ema && price<resistance*0.995){
-direction="LONG"
-}
+if(price>(support+resistance)/2){
 
-if(price<ema && price>support*1.005){
 direction="SHORT"
-}
-
-if(direction=="NONE"){
-
-document.getElementById("analysis").innerText=
-`${symbol.replace("USDT","")} market ranging. No scalping trade.`
-
-return
 
 }
 
@@ -241,9 +293,7 @@ if(direction=="LONG"){
 tp=entry+tpDistance
 sl=entry-slDistance
 
-}
-
-if(direction=="SHORT"){
+}else{
 
 tp=entry-tpDistance
 sl=entry+slDistance
@@ -253,48 +303,22 @@ sl=entry+slDistance
 document.getElementById("entry").innerText=entry.toFixed(2)
 document.getElementById("tp").innerText=tp.toFixed(2)
 document.getElementById("sl").innerText=sl.toFixed(2)
-document.getElementById("direction").innerText=direction
 
 document.getElementById("analysis").innerText=
-`${symbol.replace("USDT","")} analysis:
+`${symbol.replace("USDT","")} market analysis:
 
-EMA trend confirmed.
+Support ${support.toFixed(2)}
 
-Support: ${support.toFixed(2)}
+Resistance ${resistance.toFixed(2)}
 
-Resistance: ${resistance.toFixed(2)}
-
-Scalping opportunity detected near market price.`
-
-updatePower(direction)
+Scalping setup detected.`
 
 }
-
-function updatePower(direction){
-
-let powerValue
-
-if(direction=="LONG"){
-
-powerValue=70+Math.random()*20
-document.getElementById("powerText").innerText="Buyers dominate higher timeframe"
-
-}else{
-
-powerValue=30-Math.random()*20
-document.getElementById("powerText").innerText="Sellers dominate higher timeframe"
-
-}
-
-document.getElementById("power").style.width=powerValue+"%"
-
-}
-
-generateTrade()
 
 setInterval(generateTrade,25000)
 
 </script>
 
 </body>
+
 </html>

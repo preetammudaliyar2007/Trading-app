@@ -75,8 +75,6 @@ width:100%;
 height:60vh;
 }
 
-/* SAVE BUTTON */
-
 #saveLayout{
 display:block;
 margin:10px auto;
@@ -212,6 +210,22 @@ document.getElementById("loginPage").style.display="none"
 
 document.getElementById("dashboard").style.display="block"
 
+/* LOAD SAVED COIN */
+
+let saved=localStorage.getItem("chart_"+user)
+
+if(saved){
+
+let data=JSON.parse(saved)
+
+symbol=data.symbol
+
+document.getElementById("coinSelect").value=symbol
+
+}
+
+updateCoinUI()
+
 loadChart(symbol)
 
 generateTrade()
@@ -224,13 +238,27 @@ startDashboard()
 
 }
 
+/* UPDATE COIN UI */
+
+function updateCoinUI(){
+
+let select=document.getElementById("coinSelect")
+
+let logo=select.options[select.selectedIndex].dataset.logo
+
+document.getElementById("coinLogo").src=logo
+
+document.getElementById("coinName").innerText=symbol.replace("USDT","/USDT")
+
+}
+
 /* LOAD CHART */
 
 function loadChart(sym){
 
 document.getElementById("chart").innerHTML=""
 
-widget = new TradingView.widget({
+widget=new TradingView.widget({
 
 container_id:"chart",
 
@@ -262,17 +290,7 @@ details:true,
 
 hotlist:true,
 
-calendar:true,
-
-charts_storage_url:"https://saveload.tradingview.com",
-
-charts_storage_api_version:"1.1",
-
-client_id:"crypto_ai_dashboard",
-
-user_id:user,
-
-load_last_chart:true
+calendar:true
 
 })
 
@@ -282,7 +300,16 @@ load_last_chart:true
 
 function saveChart(){
 
-alert("Use the 💾 icon inside the chart toolbar to save your drawing layout.")
+let data={
+
+user:user,
+symbol:symbol
+
+}
+
+localStorage.setItem("chart_"+user,JSON.stringify(data))
+
+alert("Chart settings saved for "+user)
 
 }
 
@@ -292,11 +319,7 @@ document.getElementById("coinSelect").addEventListener("change",function(){
 
 symbol=this.value
 
-let logo=this.options[this.selectedIndex].dataset.logo
-
-document.getElementById("coinLogo").src=logo
-
-document.getElementById("coinName").innerText=symbol.replace("USDT","/USDT")
+updateCoinUI()
 
 document.getElementById("coinSound").play()
 

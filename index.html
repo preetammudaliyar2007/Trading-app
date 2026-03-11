@@ -33,10 +33,11 @@ border-radius:6px;
 
 button{
 padding:10px 20px;
-background:#1c3f75;
+background:#1f6fff;
 color:white;
 border:none;
 border-radius:6px;
+cursor:pointer;
 }
 
 #dashboard{
@@ -63,7 +64,7 @@ width:32px;
 
 #coinSelect{
 padding:8px;
-background:#1c3f75;
+background:#1f6fff;
 color:white;
 border:none;
 border-radius:6px;
@@ -91,15 +92,15 @@ border-radius:10px;
 
 <body>
 
-<!-- LOGIN PAGE -->
+<!-- LOGIN -->
 
 <div id="loginPage">
 
-<h2>Login to AI Trading Dashboard</h2>
+<h2>Login to Trading Dashboard</h2>
 
 <input id="username" placeholder="Enter username">
 
-<button onclick="login()">Enter Dashboard</button>
+<button onclick="login()">Enter</button>
 
 </div>
 
@@ -110,14 +111,19 @@ border-radius:10px;
 <header>
 
 <div id="coinInfo">
+
 <img id="coinLogo" src="https://cryptologos.cc/logos/bitcoin-btc-logo.png">
+
 <h2 id="coinName">BTC/USDT</h2>
+
 </div>
 
 <select id="coinSelect">
 
 <option value="BTCUSDT" data-logo="https://cryptologos.cc/logos/bitcoin-btc-logo.png">BTC</option>
+
 <option value="ETHUSDT" data-logo="https://cryptologos.cc/logos/ethereum-eth-logo.png">ETH</option>
+
 <option value="SOLUSDT" data-logo="https://cryptologos.cc/logos/solana-sol-logo.png">SOL</option>
 
 </select>
@@ -140,7 +146,7 @@ SL: <span id="sl">-</span>
 
 <div class="box">
 
-<h3>Analysis</h3>
+<h3>Market Analysis</h3>
 
 <p id="analysis">Waiting for analysis...</p>
 
@@ -150,9 +156,16 @@ SL: <span id="sl">-</span>
 
 </div>
 
+<audio id="coinSound">
+
+<source src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg">
+
+</audio>
+
 <script>
 
 let symbol="BTCUSDT"
+
 let user=""
 
 /* LOGIN */
@@ -197,7 +210,7 @@ startDashboard()
 
 }
 
-/* CHART */
+/* LOAD CHART */
 
 function loadChart(sym){
 
@@ -213,9 +226,13 @@ symbol:"BINANCE:"+sym,
 
 interval:"5",
 
+timezone:"Etc/UTC",
+
 theme:"dark",
 
 style:"1",
+
+locale:"en",
 
 toolbar_bg:"#0b1d3a",
 
@@ -225,7 +242,15 @@ hide_side_toolbar:false,
 
 hide_top_toolbar:false,
 
-/* SAVE CHART PER USER */
+withdateranges:true,
+
+details:true,
+
+hotlist:true,
+
+calendar:true,
+
+/* CHART SAVE */
 
 charts_storage_url:"https://saveload.tradingview.com",
 
@@ -235,7 +260,9 @@ client_id:"crypto_ai_dashboard",
 
 user_id:user,
 
-load_last_chart:true
+load_last_chart:true,
+
+save_image:true
 
 })
 
@@ -250,7 +277,10 @@ symbol=this.value
 let logo=this.options[this.selectedIndex].dataset.logo
 
 document.getElementById("coinLogo").src=logo
+
 document.getElementById("coinName").innerText=symbol.replace("USDT","/USDT")
+
+document.getElementById("coinSound").play()
 
 loadChart(symbol)
 
@@ -258,11 +288,12 @@ generateTrade()
 
 })
 
-/* TRADE LOGIC */
+/* AI TRADE LOGIC */
 
 async function generateTrade(){
 
 let res=await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=5m&limit=50`)
+
 let candles=await res.json()
 
 let closes=candles.map(c=>parseFloat(c[4]))
@@ -286,7 +317,9 @@ let tpDistance=300+Math.random()*200
 let slDistance=200
 
 let entry=price
-let tp,sl
+
+let tp
+let sl
 
 if(direction=="LONG"){
 
@@ -301,19 +334,25 @@ sl=entry+slDistance
 }
 
 document.getElementById("entry").innerText=entry.toFixed(2)
+
 document.getElementById("tp").innerText=tp.toFixed(2)
+
 document.getElementById("sl").innerText=sl.toFixed(2)
 
 document.getElementById("analysis").innerText=
-`${symbol.replace("USDT","")} market analysis:
+`${symbol.replace("USDT","")} Market Analysis:
 
-Support ${support.toFixed(2)}
+Support: ${support.toFixed(2)}
 
-Resistance ${resistance.toFixed(2)}
+Resistance: ${resistance.toFixed(2)}
 
-Scalping setup detected.`
+Scalping opportunity detected near market price.
+
+Suggested direction: ${direction}`
 
 }
+
+/* UPDATE TRADE EVERY 25s */
 
 setInterval(generateTrade,25000)
 
